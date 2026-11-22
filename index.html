@@ -638,6 +638,11 @@
     .kpi-card { overflow: visible !important; }
     .kpi-card:hover { z-index: 40; }
     .kpi-title .tag[data-tip]:hover::after { width: 280px; max-width: 280px; z-index: 60; }
+    /* ---- 隱藏備註（商品模式） ---- */
+    .note-toggle { margin-top: 8px; position: relative; background: #fff; color: #3a403a; border: 1px solid #d9dfd1; border-radius: 999px; padding: 4px 12px; font-size: 12.5px; font-weight: 700; cursor: pointer; font-family: inherit; }
+    .note-toggle:hover { border-color: #8cc63f; color: #3d6b14; }
+    .note-toggle[data-tip]:hover::after { content: attr(data-tip); position: absolute; left: 0; top: calc(100% + 8px); z-index: 60; width: 300px; white-space: normal; text-align: left; background: #fff; color: #1f2421; border: 1px solid #8cc63f; border-radius: 8px; padding: 8px 11px; font-size: 12.5px; font-weight: 500; line-height: 1.55; box-shadow: 0 8px 24px rgba(31,36,33,.18); }
+    body.clean .kpi-note, body.clean .factory-note, body.clean .phase2-note, body.clean .wb-legend, body.clean #assumptions, body.clean #toolsUsed { display: none !important; }
 </style>
 </head>
 <body>
@@ -648,6 +653,7 @@
         <div>
           <h1>Flow 順流計畫｜SMT 瓶頸排程與追加單助理（K12 Demo）</h1>
           <p>智谷網絡挑戰題目：「人更忙了，貨卻沒有多出去」— 昇嶺電子顧問提案互動原型</p>
+          <button id="noteToggle" class="note-toggle" data-tip="灰色小字是給評審看的推算依據與假設說明。關掉後只留功能畫面，看起來更像正式上線的產品；隨時可以再打開。">🙈 隱藏備註（商品模式）</button>
         </div>
       </div>
       <div class="constraints">
@@ -1384,6 +1390,18 @@
       document.getElementById('kvClose').addEventListener('click', close);
       modal.addEventListener('click', e => { if (e.target === modal) close(); });
       document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+    });
+
+    // ===== 隱藏備註（商品模式），記住使用者的選擇 =====
+    document.addEventListener('DOMContentLoaded', () => {
+      const btn = document.getElementById('noteToggle');
+      const set = on => {
+        document.body.classList.toggle('clean', on);
+        btn.textContent = on ? '👀 顯示備註' : '🙈 隱藏備註（商品模式）';
+        try { localStorage.setItem('flowClean', on ? '1' : '0'); } catch (e) {}
+      };
+      try { if (localStorage.getItem('flowClean') === '1') set(true); } catch (e) {}
+      btn.addEventListener('click', () => set(!document.body.classList.contains('clean')));
     });
 </script>
 
