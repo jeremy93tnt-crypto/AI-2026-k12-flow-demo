@@ -694,7 +694,7 @@
     <!-- KPI Cards (monthly) -->
     <section class="kpi-grid">
       <div class="kpi-card">
-        <div class="kpi-title">準時交貨率 <span class="tag rule" data-tip="這裡的 86–90% 只算產能提升（稼動率迴歸）。再加上 3 個合規做法可過 90%：① 罰則單優先（乙、丙是被甲擠掉的單）；② 接單當下給確定交期；③ 週六原有加班優先做罰則單。乙 90%、丙 88% 為我的假設。">怎麼過 90%？</span></div>
+        <div class="kpi-title">準時交貨率 <span class="tag rule" data-tip="86–90% 只算產能提升（換線、等料變少，用近 12 個月稼動率 → 準時率迴歸推估）。再把拋料故障降回 4 月水準（換線時檢查飛達、吸嘴，我的假設），可到 89–92%。罰則單優先主要是少罰錢，不是提高總準時率。">怎麼過 90%？</span></div>
         <div class="kpi-value" id="kpiOtd">--%</div>
         <span class="kpi-delta" id="deltaOtd">--</span>
       </div>
@@ -935,7 +935,7 @@
         set('kpiBottleneck', `${range(lo.util, hi.util, pct)}%`);
         set('kpiSaved', `${range(lo.money, hi.money, r0)} 萬`);
         setDelta('deltaOtd', `▲ +${range(lo.otd - L.otd, hi.otd - L.otd, r0)} pts（目標 90%）`, 'delta-good');
-        setDelta('deltaOutput', `▲ +${range(lo.gain, hi.gain, pct)}%（目標 +10%）`, 'delta-good');
+        setDelta('deltaOutput', `▲ +${range(lo.gain, hi.gain, x => (x * 100).toFixed(1))}%（目標 +10%）`, 'delta-good');
         setDelta('deltaSetup', `▼ 少 ${range(L.co - lo.co, L.co - hi.co, r0)} hr`, 'delta-good');
         setDelta('deltaBottleneck', `▲ +${range(lo.util - L.util, hi.util - L.util, pct)} pts`, 'delta-good');
         setDelta('deltaSaved', '多出貨毛利＋少罰款客訴', 'delta-good');
@@ -964,7 +964,7 @@
         ['假設A：換線停機減少', `${pct(ASSUME.coCut[0])}–${pct(ASSUME.coCut[1])}%`, 'team', '【我猜的】同機種合併＋換線前備料、上飛達；仍高於 4 月水準'],
         ['假設B：等料停機減少', `${pct(ASSUME.waitCut[0])}–${pct(ASSUME.waitCut[1])}%`, 'team', '【我猜的】換零件即時通知＋開工前查料'],
         ['拋料與故障', '不計入改善', 'team', '保守處理'],
-        ['準時率補到 90% 以上', '3 個合規做法', 'team', '【我猜的】① 罰則單優先：全廠準時率＝各客戶依營收加權（甲 87%×45%＋乙 71%×35%＋丙 69%×20%＝78%），保護乙、丙後乙 90%、丙 88%，加權約 88%，加上產能提升可過 90%；② 接單當下給確定交期，事後不改；③ 週六原有加班優先做罰則單，總加班不變。上方 KPI 只算產能提升，未含這三項']
+        ['準時率怎麼過 90%', '86–90% → 89–92%', 'team', '【我猜的】上方 86–90% 只算換線、等料變少；拋料故障從 48 hr 降回 4 月的 27 hr（換線時檢查飛達、吸嘴），稼動率再 +2 pts，準時率可到 89–92%。罰則單優先主要是少罰錢，不是提高總準時率；接單當下給確定交期也有幫助，但缺逐張工單資料，不算進數字']
       ];
       const label = { real: '個案資料', team: '我的假設', derived: '推導' };
       document.getElementById('assumptionRows').innerHTML = rows.map(([k, v, s, note]) => `
