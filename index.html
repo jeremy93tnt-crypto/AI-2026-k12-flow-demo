@@ -6,28 +6,28 @@
   <title>Flow 瓶頸排程 Demo</title>
   <style>
     :root {
-      --bg: #0b1020;
-      --panel: #131a2e;
-      --panel-2: #19233d;
-      --border: #263459;
-      --text: #e8eefc;
-      --muted: #93a4cc;
-      --primary: #4f8cff;
-      --primary-glow: rgba(79, 140, 255, 0.25);
-      --green: #22c55e;
-      --green-bg: rgba(34, 197, 94, 0.14);
+      --bg: #f6f8f3;
+      --panel: #ffffff;
+      --panel-2: #f0f3eb;
+      --border: #d9dfd1;
+      --text: #1f2421;
+      --muted: #6b7268;
+      --primary: #8cc63f;
+      --primary-glow: rgba(140,198,63, 0.25);
+      --green: #8cc63f;
+      --green-bg: rgba(140,198,63, 0.14);
       --amber: #f59e0b;
       --amber-bg: rgba(245, 158, 11, 0.14);
       --red: #ef4444;
       --red-bg: rgba(239, 68, 68, 0.14);
       --purple: #a855f7;
-      --cyan: #06b6d4;
+      --cyan: #8cc63f;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif;
-      background: radial-gradient(circle at top right, #162244 0%, var(--bg) 55%);
+      background: radial-gradient(circle at top right, #e9f2dc 0%, var(--bg) 55%);
       color: var(--text);
       line-height: 1.5;
       min-height: 100vh;
@@ -91,9 +91,9 @@
       color: var(--text);
     }
     .badge.zero {
-      border-color: rgba(34, 197, 94, 0.4);
+      border-color: rgba(140,198,63, 0.4);
       background: var(--green-bg);
-      color: #86efac;
+      color: #5d8f22;
     }
 
     /* Control Bar */
@@ -144,14 +144,14 @@
       box-shadow: 0 4px 14px var(--primary-glow);
     }
     button.btn-ai.active {
-      background: linear-gradient(135deg, #22c55e, #06b6d4);
+      background: linear-gradient(135deg, #8cc63f, #8cc63f);
       border-color: transparent;
       color: #04131c;
     }
     button.btn-danger {
       background: var(--red-bg);
       border-color: rgba(239, 68, 68, 0.45);
-      color: #fca5a5;
+      color: #c53030;
     }
     button.btn-danger:hover {
       background: rgba(239, 68, 68, 0.25);
@@ -220,9 +220,9 @@
       padding: 2px 8px;
       border-radius: 6px;
     }
-    .delta-good { background: var(--green-bg); color: #86efac; }
-    .delta-bad { background: var(--red-bg); color: #fca5a5; }
-    .delta-neutral { background: var(--amber-bg); color: #fcd34d; }
+    .delta-good { background: var(--green-bg); color: #5d8f22; }
+    .delta-bad { background: var(--red-bg); color: #c53030; }
+    .delta-neutral { background: var(--amber-bg); color: #b7791f; }
 
     /* Main Workspace */
     .main-grid {
@@ -308,12 +308,12 @@
       color: var(--muted);
     }
     .machine-sub.bottleneck {
-      color: #fcd34d;
+      color: #b7791f;
       font-weight: 600;
     }
     .track {
       height: 38px;
-      background: #0d1426;
+      background: #fbfcf9;
       border: 1px solid var(--border);
       border-radius: 8px;
       position: relative;
@@ -336,9 +336,9 @@
       padding: 0 4px;
       transition: all 0.3s ease;
     }
-    .block.spec-a { background: #3b82f6; }
-    .block.spec-b { background: #8b5cf6; }
-    .block.spec-c { background: #06b6d4; color: #04131c; }
+    .block.spec-a { background: #4f8db8; }
+    .block.spec-b { background: #8a76c0; }
+    .block.spec-c { background: #2f9e8f; color: #fff; }
     .block.setup {
       background: repeating-linear-gradient(
         45deg,
@@ -358,7 +358,7 @@
         rgba(239, 68, 68, 0.1) 6px,
         rgba(239, 68, 68, 0.1) 12px
       );
-      color: #fca5a5;
+      color: #c53030;
       font-size: 10px;
     }
 
@@ -389,10 +389,10 @@
       font-size: 11px;
       font-weight: 700;
     }
-    .pill-ok { background: var(--green-bg); color: #86efac; }
-    .pill-warn { background: var(--amber-bg); color: #fcd34d; }
-    .pill-late { background: var(--red-bg); color: #fca5a5; }
-    .pill-hold { background: rgba(168, 85, 247, 0.18); color: #d8b4fe; }
+    .pill-ok { background: var(--green-bg); color: #5d8f22; }
+    .pill-warn { background: var(--amber-bg); color: #b7791f; }
+    .pill-late { background: var(--red-bg); color: #c53030; }
+    .pill-hold { background: rgba(168, 85, 247, 0.18); color: #7b4fb8; }
 
     /* Right Column: AI Agent & RAG */
     .right-col {
@@ -448,15 +448,15 @@
       border-radius: 999px;
     }
     .rag-answer {
-      background: #0d1426;
+      background: #fbfcf9;
       border: 1px solid var(--border);
       border-radius: 10px;
       padding: 12px 14px;
       font-size: 13px;
-      color: #dbeafe;
+      color: #2a3a1a;
       min-height: 100px;
     }
-    .rag-answer strong { color: #86efac; }
+    .rag-answer strong { color: #5d8f22; }
 
     /* ---- v2 additions ---- */
     .badge.cost {
@@ -474,15 +474,15 @@
       vertical-align: middle;
       letter-spacing: 0.3px;
     }
-    .tag.rule { background: rgba(147, 164, 204, 0.18); color: #c7d2ee; border: 1px solid rgba(147, 164, 204, 0.35); }
-    .tag.ai { background: rgba(6, 182, 212, 0.16); color: #67e8f9; border: 1px solid rgba(6, 182, 212, 0.4); }
+    .tag.rule { background: rgba(110,118,105, 0.18); color: #4a5049; border: 1px solid rgba(110,118,105, 0.35); }
+    .tag.ai { background: rgba(140,198,63, 0.16); color: #5d8f22; border: 1px solid rgba(140,198,63, 0.4); }
     .factory-name {
       font-size: 15px;
       font-weight: 700;
     }
     .factory-note {
       font-size: 12px;
-      color: #fcd34d;
+      color: #b7791f;
       margin-top: 2px;
     }
     .kpi-note {
@@ -505,17 +505,17 @@
     }
     .assumptions summary span { color: var(--muted); font-weight: 500; font-size: 12px; margin-left: 8px; }
     .assumptions table { margin-top: 10px; }
-    .assumptions .src-todo { color: #fcd34d; }
-    .assumptions .src-team { color: #c7d2ee; }
-    .assumptions .src-derived { color: #67e8f9; }
+    .assumptions .src-todo { color: #b7791f; }
+    .assumptions .src-team { color: #4a5049; }
+    .assumptions .src-derived { color: #5d8f22; }
     .assumptions .formula {
       margin-top: 10px;
       padding: 10px 12px;
-      background: #0d1426;
+      background: #fbfcf9;
       border: 1px solid var(--border);
       border-radius: 10px;
       font-size: 12.5px;
-      color: #dbeafe;
+      color: #2a3a1a;
       line-height: 1.7;
     }
     .card.phase2 { opacity: 0.85; border-style: dashed; }
@@ -529,34 +529,45 @@
     .busy-bar { display: flex; height: 30px; border-radius: 8px; overflow: hidden; background: var(--panel-2); }
     .busy-seg { display: flex; align-items: center; justify-content: center; font-size: 11.5px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; border-right: 1px solid rgba(0,0,0,0.25); }
     .seg-sync { background: #b45309; } .seg-fire { background: #dc2626; } .seg-hunt { background: #be185d; }
-    .seg-plan { background: #2563eb; } .seg-routine { background: #475569; } .seg-free { background: #16a34a; }
+    .seg-plan { background: #4f8db8; } .seg-routine { background: #5d5755; } .seg-free { background: #6fa83a; }
     .busy-legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 11.5px; color: var(--muted); margin-top: 10px; }
     .busy-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 4px; vertical-align: -1px; }
 
     .tools-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 10px; }
     .tools-grid div { background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; font-size: 12.5px; }
-    .tools-grid strong { display: block; font-size: 13.5px; margin-bottom: 3px; color: #67e8f9; }
+    .tools-grid strong { display: block; font-size: 13.5px; margin-bottom: 3px; color: #5d8f22; }
+    /* ---- 小標的滑鼠提示 ---- */
+    .title-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+    .title-tags .tag { margin-left: 0; }
+    .tag[data-tip] { cursor: help; position: relative; }
+    .tag[data-tip]:hover::after {
+      content: attr(data-tip); position: absolute; left: 0; top: calc(100% + 6px); z-index: 50;
+      width: max-content; max-width: 260px; white-space: normal; text-align: left;
+      background: #fbfcf9; color: #1f2421; border: 1px solid #8cc63f; border-radius: 8px;
+      padding: 7px 10px; font-size: 12px; font-weight: 500; line-height: 1.5; letter-spacing: 0;
+      box-shadow: 0 8px 24px rgba(0,0,0,.45);
+    }
     /* ---- Agent 工作台 ---- */
     .wb-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12px; color: var(--muted); margin: 8px 0 2px; padding: 8px 10px; background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px; }
     .wb-legend strong { color: var(--text); }
-    .tag.ok { background: rgba(34,197,94,.14); color: #86efac; border: 1px solid rgba(34,197,94,.4); }
+    .tag.ok { background: rgba(140,198,63,.14); color: #5d8f22; border: 1px solid rgba(140,198,63,.4); }
     .agent-wb { margin-bottom: 20px; }
     .wb-grid { display: grid; grid-template-columns: 1fr 1.15fr; gap: 18px; margin-top: 8px; }
     .wb-label { font-size: 12.5px; font-weight: 700; color: var(--muted); margin-bottom: 6px; }
     .wb-samples { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
     .wb-samples button, .wb-row select { background: var(--panel-2); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 5px 10px; font-size: 12.5px; cursor: pointer; }
-    .agent-wb textarea { width: 100%; background: #0d1426; color: var(--text); border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; font-size: 13.5px; font-family: inherit; resize: vertical; }
+    .agent-wb textarea { width: 100%; background: #fbfcf9; color: var(--text); border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; font-size: 13.5px; font-family: inherit; resize: vertical; }
     .wb-row { display: flex; gap: 8px; margin-top: 8px; }
-    .wb-row .btn-ai { flex: 1; border-radius: 8px; padding: 8px; font-weight: 700; cursor: pointer; border: none; background: linear-gradient(90deg,#22c55e,#06b6d4); color: #04131c; font-size: 14px; }
+    .wb-row .btn-ai { flex: 1; border-radius: 8px; padding: 8px; font-weight: 700; cursor: pointer; border: none; background: linear-gradient(90deg,#8cc63f,#8cc63f); color: #04131c; font-size: 14px; }
     .wb-line { display: grid; grid-template-columns: 62px 1fr 140px; gap: 8px; align-items: center; margin: 5px 0; font-size: 12px; }
     .wb-track { position: relative; height: 26px; background: var(--panel-2); border-radius: 6px; overflow: hidden; }
-    .wb-over { font-size: 11px; color: var(--amber-t, #fcd34d); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .wb-over.bad { color: #fca5a5; font-weight: 700; } .wb-over.ok { color: #86efac; }
+    .wb-over { font-size: 11px; color: var(--amber-t, #b7791f); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .wb-over.bad { color: #c53030; font-weight: 700; } .wb-over.ok { color: #5d8f22; }
     .wb-reset { background: var(--panel-2); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 0 12px; cursor: pointer; font-size: 13px; }
-    .wb-shift { position: absolute; left: 0; top: 0; bottom: 0; width: 76.9%; border: 1.5px solid rgba(79,140,255,.7); border-radius: 6px; pointer-events: none; z-index: 2; }
+    .wb-shift { position: absolute; left: 0; top: 0; bottom: 0; width: 76.9%; border: 1.5px solid rgba(140,198,63,.7); border-radius: 6px; pointer-events: none; z-index: 2; }
     .wb-blk { position: absolute; top: 3px; bottom: 3px; border-radius: 4px; font-size: 11px; font-weight: 700; color: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden; white-space: nowrap; }
-    .wb-blk.c甲 { background: #3b82f6; } .wb-blk.c乙 { background: #8b5cf6; } .wb-blk.c丙 { background: #0891b2; }
+    .wb-blk.c甲 { background: #4f8db8; } .wb-blk.c乙 { background: #8a76c0; } .wb-blk.c丙 { background: #2f9e8f; }
     .wb-blk.setup { background: repeating-linear-gradient(45deg,#f59e0b,#f59e0b 4px,#b45309 4px,#b45309 8px); }
-    .wb-blk.new { background: #16a34a; } .wb-blk.late { background: #dc2626; }
+    .wb-blk.new { background: #6fa83a; } .wb-blk.late { background: #dc2626; }
     .wb-axis { display: flex; justify-content: space-between; font-size: 10.5px; color: var(--muted); }
     .wb-axis i { font-style: normal; }
     .wb-trace { display: flex; flex-direction: column; gap: 8px; }
@@ -564,10 +575,43 @@
     .wb-step-h { font-weight: 700; margin-bottom: 4px; } .wb-step-h b { display: inline-block; width: 20px; height: 20px; border-radius: 50%; background: var(--cyan); color: #04131c; text-align: center; font-size: 12px; line-height: 20px; margin-right: 4px; }
     .wb-kv td { padding: 2px 8px 2px 0; font-size: 12.5px; } .wb-kv td:nth-child(odd) { color: var(--muted); }
     .wb-opt { font-size: 12px; } .wb-opt th, .wb-opt td { padding: 3px 6px; }
-    .wb-warn { margin-top: 6px; color: #fcd34d; font-size: 12.5px; }
-    .wb-step .r { color: #fca5a5; font-weight: 700; } .wb-step .g { color: #86efac; font-weight: 700; }
+    .wb-warn { margin-top: 6px; color: #b7791f; font-size: 12.5px; }
+    .wb-step .r { color: #c53030; font-weight: 700; } .wb-step .g { color: #5d8f22; font-weight: 700; }
     @keyframes wbIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-  </style>
+  
+  /* ---- 智谷網絡配色覆寫：深炭黑＋萊姆綠，鋼藍為輔 ---- */
+  .tag.ok { background: rgba(79,141,184,.18) !important; color: #2f6b8f !important; border: 1px solid rgba(79,141,184,.5) !important; }
+
+    /* ---- 使用說明按鈕（智谷 logo）---- */
+    .kv-help { position: fixed; right: 22px; bottom: 22px; z-index: 100; display: flex; align-items: center; gap: 10px; touch-action: none; user-select: none; cursor: grab; }
+    .kv-help.dragging { cursor: grabbing; opacity: .9; } .kv-help.dragging .kv-bubble { animation: none; }
+    .kv-btn { display: flex; align-items: center; gap: 8px; background: #fff; border: 1px solid #d9dfd1; border-radius: 12px; padding: 7px 14px 7px 7px; line-height: 1; cursor: pointer; box-shadow: 0 6px 20px rgba(31,36,33,.18); font-weight: 800; color: #4a5f80; font-size: 14px; }
+    .kv-btn:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(31,36,33,.22); }
+    .kv-mark { width: 30px; height: 30px; flex: none; display: block; }
+    .kv-bubble { position: relative; background: #1f2421; color: #fff; font-size: 13px; font-weight: 700; padding: 7px 12px; border-radius: 10px; white-space: nowrap; cursor: pointer; animation: kvBob 2.2s ease-in-out infinite; }
+    .kv-bubble::after { content: ""; position: absolute; right: -6px; top: 50%; transform: translateY(-50%); border: 6px solid transparent; border-left-color: #1f2421; border-right: 0; }
+    @keyframes kvBob { 0%,100% { transform: translateX(0); } 50% { transform: translateX(-4px); } }
+    .kv-modal { position: fixed; inset: 0; background: rgba(31,36,33,.45); z-index: 200; display: none; align-items: center; justify-content: center; padding: 20px; }
+    .kv-modal.open { display: flex; }
+    .kv-panel { background: #fff; color: #1f2421; width: min(720px, 100%); max-height: 88vh; overflow: auto; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,.3); }
+    .kv-head { display: flex; align-items: center; gap: 12px; padding: 16px 20px; border-bottom: 3px solid #8cc63f; position: sticky; top: 0; background: #fff; }
+    .kv-head .kv-mark { width: 42px; height: 42px; }
+    .kv-head h2 { font-size: 20px; margin: 0; } .kv-head p { margin: 0; font-size: 12.5px; color: #6b7268; }
+    .kv-close { margin-left: auto; border: none; background: #f0f3eb; border-radius: 8px; width: 34px; height: 34px; cursor: pointer; font-size: 16px; }
+    .kv-body { padding: 6px 22px 20px; font-size: 14px; line-height: 1.65; }
+    .kv-body h3 { font-size: 15px; margin: 14px 0 4px; color: #5d8f22; }
+    .kv-body ol, .kv-body ul { padding-left: 20px; margin: 0; } .kv-body li { margin: 4px 0; }
+    .kv-tags { list-style: none; padding-left: 0 !important; }
+    .badge[data-tip] { cursor: help; position: relative; }
+    .badge[data-tip]:hover::after {
+      content: attr(data-tip); position: absolute; right: 0; top: calc(100% + 8px); z-index: 60;
+      width: max-content; max-width: 300px; white-space: normal; text-align: left;
+      background: #fff; color: #1f2421; border: 1px solid #8cc63f; border-radius: 8px;
+      padding: 8px 11px; font-size: 12.5px; font-weight: 500; line-height: 1.55;
+      box-shadow: 0 8px 24px rgba(31,36,33,.18);
+    }
+    .tag[data-tip]:hover::after { background: #fff !important; color: #1f2421 !important; border-color: #8cc63f !important; }
+</style>
 </head>
 <body>
   <div class="container">
@@ -580,11 +624,11 @@
         </div>
       </div>
       <div class="constraints">
-        <span class="badge zero">✓ 不加人</span>
-        <span class="badge zero">✓ 不買新機台</span>
-        <span class="badge zero">✓ 加班不增加</span>
-        <span class="badge zero">✓ 甲的追加單不拒絕</span>
-        <span class="badge cost" title="軟體：共用資料表＋大型語言模型訂閱，工具不綁定（見提案成本）&#10;作業員不多輸入：資料來自 SMT 機台紀錄、LINE 群組、既有日報">ⓘ 資料來源與成本</span>
+        <span class="badge zero" data-tip="不加人：產出全部來自現有 SMT 少停機；生管、業務、倉庫用原本的人兼任。">✓ 不加人</span>
+        <span class="badge zero" data-tip="不買新機台：多出的貨來自 4 條 SMT 線少換線、少等料，不是新設備。">✓ 不買新機台</span>
+        <span class="badge zero" data-tip="加班不增加：SMT 開機時數維持 9 月的 1,003 hr，多出的產能來自停機變少。">✓ 加班不增加</span>
+        <span class="badge zero" data-tip="甲的追加單不拒絕：一張都照接，只決定怎麼排，不再擠掉有罰則的乙、丙。">✓ 甲的追加單不拒絕</span>
+        <span class="badge cost" data-tip="資料來源：數字來自智谷個案資料 1–3；導入後直接讀 SMT 機台紀錄、業務 LINE 群組、課長日報，作業員不用多輸入。成本：共用資料表＋大型語言模型訂閱，工具不綁定；先 1 條線試點，看到效果再加，金額待查證。">ⓘ 資料來源與成本</span>
       </div>
     </header>
 
@@ -649,7 +693,7 @@
 
     <!-- Assumptions panel -->
     <details class="assumptions" id="assumptions">
-      <summary>📐 假設與資料來源<span>基準全部來自個案資料；團隊假設只有兩個，標【我猜的】</span></summary>
+      <summary>📐 假設與資料來源<span>基準全部來自個案資料；我自己的假設只有兩個，標【我猜的】</span></summary>
       <div class="table-wrap">
         <table>
           <thead>
@@ -697,7 +741,7 @@
             <select id="wbChannel"><option>LINE</option><option>電話錄音</option><option>口頭</option><option>正式單</option></select>
             <button class="btn-ai" id="wbRun">▶ 交給 Agent</button><button id="wbReset" onclick="WB.reset()" class="wb-reset">↺ 重置</button>
           </div>
-          <div class="wb-label" style="margin-top:12px">今日 SMT 排程（9/16 示意：單號與批量為【我猜的】）</div>
+          <div class="wb-label" style="margin-top:12px">今日 SMT 排程（9/16 示意：單號、每張單的片數、哪張單排在哪條線，都是【我猜的】）</div>
           <div id="wbSched"></div>
           <div class="kpi-note">只畫正常班 08:00–18:00（含現有加班，不再增加）；做不完的片數標在右邊，順延到隔天早上。紅色＝今天交期的單被擠到明天。</div>
         </div>
@@ -709,21 +753,21 @@
     </section>
 
     <!-- Tools used -->
-    <section class="busy-card" id="toolsUsed">
-      <div class="card-title">🧰 這個 Demo 和提案是用哪些工具做出來的</div>
-      <div class="tools-grid"><div><strong>Claude Code（AI 助手）</strong><span>讀個案單與 3 份資料、找出 SMT 是瓶頸、寫回測與 Demo 程式、排版提案；每個數字都由組員對回原始資料</span></div><div><strong>Python</strong><span>整理資料1–3、迴歸（追加次數→停機、稼動率→準時率）、9 月回測、畫趨勢與停機圖</span></div><div><strong>HTML／JavaScript</strong><span>離線 Demo 與 Agent 工作台：不連網、不需金鑰，資料不出電腦</span></div><div><strong>Google Drive</strong><span>取得智谷提供的個案單與三份 Excel</span></div><div><strong>Chrome</strong><span>把提案網頁輸出成 PDF</span></div></div>
+    <details class="assumptions" id="toolsUsed">
+      <summary>🧰 這個 Demo 和提案是用哪些工具做出來的<span>Claude Code、Python、HTML／JavaScript、Google Drive、Chrome；點開看各自用在哪</span></summary>
+      <div class="tools-grid"><div><strong>Claude Code（AI 助手）</strong><span>讀個案單與 3 份資料、找出 SMT 是瓶頸、寫回測與 Demo 程式、排版提案；每個數字都由我對回原始資料</span></div><div><strong>Python</strong><span>整理資料1–3、迴歸（追加次數→停機、稼動率→準時率）、9 月回測、畫趨勢與停機圖</span></div><div><strong>HTML／JavaScript</strong><span>離線 Demo 與 Agent 工作台：不連網、不需金鑰，資料不出電腦</span></div><div><strong>Google Drive</strong><span>取得智谷提供的個案單與三份 Excel</span></div><div><strong>Chrome</strong><span>把提案網頁輸出成 PDF</span></div></div>
       <div class="kpi-note" style="margin-top:8px">導入昇嶺時工具不綁定：共用資料表可用 Notion 或 Google 試算表，AI 可接任何大型語言模型；算代價一律用規則。</div>
-    </section>
+    </details>
 
     <!-- Main Content -->
     <div class="main-grid">
       <div class="card">
         <div class="card-header">
-          <div class="card-title">📊 SMT 排程視覺化（以 9/16 為例，單日班表示意；W0916、批量、線別為【我猜的】）</div>
+          <div class="card-title">📊 SMT 排程視覺化（以 9/16 為例，單日班表示意；W0916 這張單號、每張單的片數、哪張單排在哪條線，都是【我猜的】）</div>
           <div class="legend">
-            <span class="legend-item"><span class="dot" style="background:#3b82f6"></span>甲 A1/A2</span>
-            <span class="legend-item"><span class="dot" style="background:#8b5cf6"></span>乙 B2</span>
-            <span class="legend-item"><span class="dot" style="background:#06b6d4"></span>丙 C1/C2</span>
+            <span class="legend-item"><span class="dot" style="background:#4f8db8"></span>甲 A1/A2</span>
+            <span class="legend-item"><span class="dot" style="background:#8a76c0"></span>乙 B2</span>
+            <span class="legend-item"><span class="dot" style="background:#8cc63f"></span>丙 C1/C2</span>
             <span class="legend-item"><span class="dot" style="background:#f59e0b"></span>換線</span>
             <span class="legend-item"><span class="dot" style="background:#ef4444"></span>等料／停機</span>
           </div>
@@ -758,7 +802,7 @@
       <div class="right-col">
         <div class="card">
           <div class="card-header">
-            <div class="card-title">🤖 追加單與換零件助理（LINE 推播模擬）<span class="tag rule">規則算代價</span><span class="tag ai">AI 讀訊息、寫人話</span></div>
+            <div><div class="card-title">🤖 追加單與換零件助理（LINE 推播模擬）</div><div class="title-tags"><span class="tag rule">規則算代價</span><span class="tag ai">AI 讀訊息、寫人話</span></div></div>
           </div>
           <div class="agent-feed" id="agentFeed"></div>
         </div>
@@ -889,7 +933,7 @@
         ['假設B：等料停機減少', `${pct(ASSUME.waitCut[0])}–${pct(ASSUME.waitCut[1])}%`, 'team', '【我猜的】換零件即時通知＋開工前查料'],
         ['拋料與故障', '不計入改善', 'team', '保守處理']
       ];
-      const label = { real: '個案資料', team: '團隊假設', derived: '推導' };
+      const label = { real: '個案資料', team: '我的假設', derived: '推導' };
       document.getElementById('assumptionRows').innerHTML = rows.map(([k, v, s, note]) => `
         <tr><td>${k}</td><td><strong>${v}</strong></td><td class="src-${s === 'real' ? 'team' : s === 'team' ? 'todo' : 'derived'}">${label[s]}｜${note}</td></tr>`).join('');
     }
@@ -942,7 +986,7 @@
         const res = state.mode === 'ai' ? o.ai : o.legacy;
         const kitOk = o.kit === '齊';
         return `<tr><td><strong>${o.id}</strong></td><td>${o.cust}</td>
-          <td>${kitOk ? '<span style="color:#86efac">● 料齊</span>' : `<span style="color:#fca5a5">▲ ${o.kit}</span>`}</td>
+          <td>${kitOk ? '<span style="color:#5d8f22">● 料齊</span>' : `<span style="color:#c53030">▲ ${o.kit}</span>`}</td>
           <td>${o.pen}</td><td><span class="pill ${res[0]}">${res[1]}</span></td></tr>`;
       }).join('');
     }
@@ -1136,7 +1180,7 @@
       }
 
       const step = (n, title, tags, body) => `<div class="wb-step"><div class="wb-step-h"><b>${n}</b> ${title} ${tags}</div><div class="wb-step-b">${body}</div></div>`;
-      const T = { llm: '<span class="tag ai">LLM</span>', speech: '<span class="tag ai">Speech</span>', tool: '<span class="tag ai">Agent 呼叫工具</span>', rule: '<span class="tag rule">規則</span>', human: '<span class="tag" style="background:rgba(34,197,94,.14);color:#86efac;border:1px solid rgba(34,197,94,.4)">人</span>', flow: '<span class="tag ai">Flow</span>' };
+      const T = { llm: '<span class="tag ai">LLM</span>', speech: '<span class="tag ai">Speech</span>', tool: '<span class="tag ai">Agent 呼叫工具</span>', rule: '<span class="tag rule">規則</span>', human: '<span class="tag" style="background:rgba(140,198,63,.14);color:#5d8f22;border:1px solid rgba(140,198,63,.4)">人</span>', flow: '<span class="tag ai">Flow</span>' };
 
       async function run() {
         const trace = document.getElementById('wbTrace');
@@ -1214,6 +1258,108 @@
       return { init, approve, pick, run, reset };
     })();
     WB.init();
-  </script>
+
+    // ===== 小標的滑鼠提示：游標移到小標上，顯示它的意思 =====
+    const TAG_TIPS = [
+      [/Code／RAG／ML/, 'Code／RAG／ML：請 AI 寫程式做儀表板／照公司 SOP 回答的知識庫／用過去數字預測未來（後兩項放第二階段）。'],
+      [/規則算代價/, '規則算代價：插單會擠掉誰、晚幾天、罰多少錢，一律用固定公式算（例：1,500 片 × 1,200 元 × 2% ＝ 3.6 萬），不讓 AI 猜。'],
+      [/AI 讀訊息|寫人話/, 'AI 讀訊息、寫人話：AI 只做規則寫不完的事，把 LINE、電話內容整理成工單，把算好的數字寫成生管看得懂的建議。'],
+      [/AI 讀 LINE/, 'AI 讀 LINE：AI 看懂 LINE 裡的換零件、追加訊息，轉成結構化資料。'],
+      [/^規則$/, '規則：用固定公式或條件算，同樣的輸入一定得到同樣的答案，可以追溯，不用 AI（例：換線 0.9 hr、料不齊不排 SMT）。'],
+      [/^LLM$/, 'LLM（大型語言模型）：讀、寫、整理文字。這裡用來把訊息轉成工單、寫建議。'],
+      [/^Speech$/, 'Speech（語音）：電話錄音轉成文字，口頭交代也留得下紀錄。'],
+      [/Agent/, 'Agent：AI 自己決定下一步、會呼叫工具（查排程、罰則、換線時間），最後提出方案，但不自己執行。'],
+      [/^Flow$/, 'Flow（自動化流程）：固定步驟串起來，例：核准後自動通知業務、課長、倉庫。'],
+      [/^Code$/, 'Code：請 AI 寫程式，做出儀表板或小工具。'],
+      [/^RAG$|AI 檢索/, 'RAG（知識庫問答）：AI 照公司自己的 SOP 和紀錄回答，不亂編。'],
+      [/^ML$/, 'ML（機器學習）：用過去的數字預測未來，例：拋料預測（第二階段）。'],
+      [/^人$/, '人：最後決定由生管按鍵核准，AI 不自己執行，出錯有人把關。'],
+      [/機台紀錄/, '機台紀錄：數字直接來自 SMT 機台紀錄，不需要作業員多輸入。'],
+      [/離線版/, '離線版：整個 Demo 在瀏覽器裡執行，不連網、不需金鑰；讀訊息和寫建議先用規則模擬 AI 的輸出。'],
+      [/假設|我猜的/, '我的假設：個案沒給的數字，由我自己合理假設，標【我猜的】。']
+    ];
+    function applyTagTips(root = document) {
+      root.querySelectorAll('.tag:not([data-tip])').forEach(el => {
+        const t = el.textContent.trim();
+        const hit = TAG_TIPS.find(([re]) => re.test(t));
+        if (hit) el.setAttribute('data-tip', hit[1]);
+      });
+    }
+    applyTagTips();
+    new MutationObserver(() => applyTagTips()).observe(document.body, { childList: true, subtree: true });
+  
+    // ===== 使用說明 =====
+    document.addEventListener('DOMContentLoaded', () => {
+      const modal = document.getElementById('kvModal');
+      const open = () => { modal.classList.add('open'); document.getElementById('kvBubble').style.display = 'none'; };
+      const close = () => modal.classList.remove('open');
+      // 可拖曳：移動超過 5px 視為拖曳，不打開說明；放開後記住位置
+      const box = document.querySelector('.kv-help');
+      let drag = null, moved = false;
+      try { const pos = JSON.parse(localStorage.getItem('kvHelpPos') || 'null'); if (pos) place(pos.x, pos.y); } catch (e) {}
+      function place(x, y) {
+        const w = box.offsetWidth, h = box.offsetHeight;
+        x = Math.min(Math.max(8, x), window.innerWidth - w - 8);
+        y = Math.min(Math.max(8, y), window.innerHeight - h - 8);
+        box.style.left = x + 'px'; box.style.top = y + 'px'; box.style.right = 'auto'; box.style.bottom = 'auto';
+        return { x, y };
+      }
+      box.addEventListener('pointerdown', e => {
+        const r = box.getBoundingClientRect();
+        drag = { dx: e.clientX - r.left, dy: e.clientY - r.top, sx: e.clientX, sy: e.clientY }; moved = false;
+        box.setPointerCapture(e.pointerId);
+      });
+      box.addEventListener('pointermove', e => {
+        if (!drag) return;
+        if (!moved && Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) < 5) return;
+        moved = true; box.classList.add('dragging');
+        place(e.clientX - drag.dx, e.clientY - drag.dy);
+      });
+      box.addEventListener('pointerup', e => {
+        if (!drag) return;
+        box.classList.remove('dragging');
+        if (moved) { const r = box.getBoundingClientRect(); try { localStorage.setItem('kvHelpPos', JSON.stringify({ x: r.left, y: r.top })); } catch (err) {} }
+        else open();
+        drag = null;
+      });
+      window.addEventListener('resize', () => { if (box.style.left) { const r = box.getBoundingClientRect(); place(r.left, r.top); } });
+      document.getElementById('kvClose').addEventListener('click', close);
+      modal.addEventListener('click', e => { if (e.target === modal) close(); });
+      document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+    });
+</script>
+
+  <!-- ===== 使用說明：智谷 logo 按鈕 ===== -->
+  <div class="kv-help">
+    <div class="kv-bubble" id="kvBubble">點選查看說明<small style="display:block;font-weight:500;opacity:.75;font-size:11px">按住可拖曳</small></div>
+    <button class="kv-btn" id="kvBtn" title="點選查看說明；按住可拖曳移動" aria-label="開啟使用說明"><svg class="kv-mark" viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" rx="8" fill="#8cc63f"/><path d="M30 18 C26 40 24 62 20 84" stroke="#fff" stroke-width="10" stroke-linecap="round" fill="none"/><path d="M27 55 L84 20" stroke="#fff" stroke-width="10" stroke-linecap="round"/><path d="M40 50 L82 78" stroke="#fff" stroke-width="10" stroke-linecap="round"/></svg><span>智谷網絡</span></button>
+  </div>
+  <div class="kv-modal" id="kvModal" role="dialog" aria-modal="true" aria-labelledby="kvTitle">
+    <div class="kv-panel">
+      <div class="kv-head"><svg class="kv-mark" viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" rx="8" fill="#8cc63f"/><path d="M30 18 C26 40 24 62 20 84" stroke="#fff" stroke-width="10" stroke-linecap="round" fill="none"/><path d="M27 55 L84 20" stroke="#fff" stroke-width="10" stroke-linecap="round"/><path d="M40 50 L82 78" stroke="#fff" stroke-width="10" stroke-linecap="round"/></svg><div><h2 id="kvTitle">使用說明</h2><p>昇嶺電子 SMT 瓶頸排程＋追加單 Agent｜互動原型</p></div><button class="kv-close" id="kvClose" aria-label="關閉">✕</button></div>
+      <div class="kv-body">
+        <h3>這是什麼</h3>
+        <p>把提案裡的做法做成可以操作的網頁。基準數字全部來自智谷提供的個案資料 1–3（2026 年 9 月）；自己假設的地方標【我猜的】。整頁在瀏覽器裡執行，不連網、不需要帳號或金鑰。</p>
+        <h3>三步驟試用</h3>
+        <ol>
+          <li><strong>看全廠影響：</strong>拖上方滑桿「每月追加單與換零件次數」，再切換「現況」和「Flow」，比較準時率、出貨、換線停機和毛利。</li>
+          <li><strong>交給 Agent：</strong>在「Agent 工作台」選一則 9 月真實訊息（9/16 電話、9/2 LINE、9/24 口頭、9/14 換零件），按「▶ 交給 Agent」，看它一步步讀訊息、查資料、算代價、寫建議；最後按「核准」，看排程怎麼變、通知了誰。</li>
+          <li><strong>重播 9/16：</strong>按上方紅色「⚡ 重播 9/16 甲追加 500 片」，在甘特圖和工單表比較兩個方案；右側推播可以直接核准。</li>
+        </ol>
+        <h3>小標是什麼意思</h3>
+        <p>把滑鼠移到任何小標上，都會跳出說明。最重要的三個：</p>
+        <ul class="kv-tags">
+          <li><span class="tag rule">規則</span> 固定公式算，可追溯，不用 AI。插單代價（罰多少錢）一律用規則算。</li>
+          <li><span class="tag ai">LLM／Agent</span> AI 只做規則寫不完的事：讀 LINE、電話訊息，寫建議給生管。</li>
+          <li><span class="tag ok">人</span> 最後由生管按鍵核准，AI 不自己執行。</li>
+        </ul>
+        <h3>其他</h3>
+        <ul>
+          <li>想重來：按 Agent 工作台的「↺ 重置」，或重新整理頁面。</li>
+          <li>離線版的「讀訊息、寫建議」先用規則模擬 AI 的輸出；正式導入時交給大型語言模型，工具不綁定。</li>
+        </ul>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
