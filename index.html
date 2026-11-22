@@ -687,7 +687,7 @@
     <!-- KPI Cards (monthly) -->
     <section class="kpi-grid">
       <div class="kpi-card">
-        <div class="kpi-title">準時交貨率</div>
+        <div class="kpi-title">準時交貨率 <span class="tag rule" data-tip="這裡的 86–90% 只算產能提升（稼動率迴歸）。再加上 3 個合規做法可過 90%：① 罰則單優先（乙、丙是被甲擠掉的單）；② 接單當下給確定交期；③ 週六原有加班優先做罰則單。乙 90%、丙 88% 為我的假設。">怎麼過 90%？</span></div>
         <div class="kpi-value" id="kpiOtd">--%</div>
         <span class="kpi-delta" id="deltaOtd">--</span>
       </div>
@@ -956,7 +956,8 @@
         ['準時率', `${r0(L.otd)}%`, 'derived', '依 SMT 稼動率迴歸（近 12 個月）'],
         ['假設A：換線停機減少', `${pct(ASSUME.coCut[0])}–${pct(ASSUME.coCut[1])}%`, 'team', '【我猜的】同機種合併＋換線前備料、上飛達；仍高於 4 月水準'],
         ['假設B：等料停機減少', `${pct(ASSUME.waitCut[0])}–${pct(ASSUME.waitCut[1])}%`, 'team', '【我猜的】換零件即時通知＋開工前查料'],
-        ['拋料與故障', '不計入改善', 'team', '保守處理']
+        ['拋料與故障', '不計入改善', 'team', '保守處理'],
+        ['準時率補到 90% 以上', '3 個合規做法', 'team', '【我猜的】① 罰則單優先：全廠準時率＝各客戶依營收加權（甲 87%×45%＋乙 71%×35%＋丙 69%×20%＝78%），保護乙、丙後乙 90%、丙 88%，加權約 88%，加上產能提升可過 90%；② 接單當下給確定交期，事後不改；③ 週六原有加班優先做罰則單，總加班不變。上方 KPI 只算產能提升，未含這三項']
       ];
       const label = { real: '個案資料', team: '我的假設', derived: '推導' };
       document.getElementById('assumptionRows').innerHTML = rows.map(([k, v, s, note]) => `
