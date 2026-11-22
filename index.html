@@ -632,6 +632,12 @@
     .wb-legend2 { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 11.5px; color: #6b7268; margin: 6px 0 2px 70px; }
     .wb-legend2 i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 4px; vertical-align: -1px; }
     .wb-legend2 .lg-setup { background: repeating-linear-gradient(45deg,#f59e0b,#f59e0b 3px,#b45309 3px,#b45309 6px); }
+    @keyframes kvFlash { 0% { box-shadow: 0 0 0 0 rgba(140,198,63,.0); } 25% { box-shadow: 0 0 0 4px rgba(140,198,63,.65); } 100% { box-shadow: 0 0 0 0 rgba(140,198,63,0); } }
+    .kv-flash { animation: kvFlash 1.6s ease-out 2; }
+    /* KPI 卡片上的說明框不要被裁掉或被下一張卡蓋住 */
+    .kpi-card { overflow: visible !important; }
+    .kpi-card:hover { z-index: 40; }
+    .kpi-title .tag[data-tip]:hover::after { width: 280px; max-width: 280px; z-index: 60; }
 </style>
 </head>
 <body>
@@ -680,6 +686,7 @@
           <button id="btnLegacy">現況：口頭接單＋固定換線假設</button>
           <button id="btnAi" class="btn-ai active">Flow（規則＋AI 助理）</button>
           <button id="btnShock" class="btn-danger">⚡ 重播 9/16 甲追加 500 片</button>
+          <div class="kpi-note" style="margin-top:4px">按下後自動捲到下方的甘特圖和推播，在推播裡選方案</div>
         </div>
       </div>
     </section>
@@ -1088,8 +1095,16 @@
     document.getElementById('btnShock').addEventListener('click', () => {
       state.shockTriggered = !state.shockTriggered;
       if (!state.shockTriggered) state.approvedPlan = null;
-      document.getElementById('btnShock').textContent = state.shockTriggered ? '↺ 重置' : '⚡ 重播 9/16 甲追加 500 片';
+      document.getElementById('btnShock').textContent = state.shockTriggered ? '↺ 重置 9/16 重播' : '⚡ 重播 9/16 甲追加 500 片';
       updateAll();
+      if (state.shockTriggered) {
+        // 結果在頁面下方的甘特圖與推播，自動捲過去並閃一下，避免以為按鈕沒反應
+        const grid = document.querySelector('.main-grid');
+        grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        grid.querySelectorAll(':scope > .card, .right-col > .card:first-child').forEach(el => {
+          el.classList.remove('kv-flash'); void el.offsetWidth; el.classList.add('kv-flash');
+        });
+      }
     });
 
     updateAll();
