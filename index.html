@@ -675,8 +675,8 @@
             <span>每月追加單與換零件（次）</span>
             <span id="evVal">12 次</span>
           </div>
-          <input type="range" id="evSlider" min="2" max="20" value="12" />
-          <div class="kpi-note">4 月 3 次 → 9 月 12 次。換線、等料、拋料停機都跟著它變多（依近 12 個月資料迴歸）</div>
+          <input type="range" id="evSlider" min="6" max="20" value="12" />
+          <div class="kpi-note">4 月 3 次 → 9 月 12 次，可調 6～20 次。換線、等料、拋料停機都跟著它變多（依近 12 個月資料迴歸）；開機時數固定為 9 月的 1,003 hr，所以和其他月份的實際值不會完全相同。</div>
         </div>
       </div>
 
@@ -949,7 +949,7 @@
         setDelta('deltaOutput', '⚠️ 接單多、出貨沒多', 'delta-bad');
         setDelta('deltaSetup', `⚠️ 排程只抓 52 hr／月`, 'delta-bad');
         setDelta('deltaBottleneck', `⚠️ 等料 ${r0(L.wait)}、拋料 ${r0(L.jam)} hr`, 'delta-neutral');
-        setDelta('deltaSaved', `9 月損失 135 萬`, 'delta-bad');
+        setDelta('deltaSaved', state.events === 12 ? '9 月損失 135 萬' : '情境推估（9 月為 12 次）', 'delta-bad');
       }
     }
 
@@ -1011,7 +1011,7 @@
       if (state.shockTriggered) {
         orders.unshift({ id: '甲追加', cust: '甲／A1 500 片（電話 13:10）', kit: '齊', pen: '無（但不能拒絕）',
           legacy: ['pill-late', '2 小時 40 分後現場才知道，直接插單'],
-          ai: plan === 'merge' ? ['pill-ok', '已核准方案一：接在 1 線 A1 後，今晚完成']
+          ai: plan === 'merge' ? ['pill-ok', '已核准方案一：接在 1 線 A1 後，明天 10:20 完成']
             : plan === 'split' ? ['pill-ok', '已核准方案二：插入 2 線，今天下午完成']
             : ['pill-hold', '待生管選方案（業務已收到預估交期）'] });
       }
@@ -1035,7 +1035,7 @@
             <div class="alert-meta"><span>🚨 甲追加單影響分析 <span class="tag ai">AI 讀訊息</span><span class="tag rule">規則算代價</span></span><span>13:12</span></div>
             <div>業務電話記錄：「甲追加 <strong>A1 500 片</strong>，越快越好」→ 已轉成工單。甲的追加不能拒絕，只決定<strong>怎麼排</strong>：</div>
             <div style="margin-top:6px;font-size:12px;color:var(--muted)">
-              ① 接在 1 線正在跑的 A1 後面：<strong>零換線</strong>，今晚完成；丙 C1 順延半天仍在交期內，<strong>罰款 0</strong><br/>
+              ① 接在 1 線正在跑的 A1 後面：<strong>零換線</strong>，明天 10:20 完成（正常班內做完，不加班）；丙 C1 順延半天仍在交期內，<strong>罰款 0</strong><br/>
               ② 立刻插入 2 線：今天下午完成，但要多換線 2 次（換過去再換回來，約 270 片產能），乙 W0914 晚 1 天，<strong>罰約 3.6 萬</strong>（1,500 片 × 1,200 × 2%）
             </div>
             <div class="alert-actions">
@@ -1138,7 +1138,13 @@
         return out;
       }
       const hhmm = h => { const m = Math.round(h * 60); return `${String(Math.floor(m / 60) % 24).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`; };
-      const finishText = e => e <= DAY_END ? `今天 ${hhmm(e)}` : `明早 ${hhmm(8 + (e - DAY_END))}`;
+      const finishText = e => {
+        if (e <= DAY_END) return `今天 ${hhmm(e)}`;
+        let r = e - DAY_END, day = 1;
+        while (r > DAY_END - 8) { r -= DAY_END - 8; day++; }   // 每天正常班 10 小時，做不完再順延一天
+        const t = hhmm(8 + r);
+        return day === 1 ? `明天 ${t}` : day === 2 ? `後天 ${t}` : `${day} 天後 ${t}`;
+      };
 
       function parse(text, ch) {
         const cust = (text.match(/[甲乙丙]/) || [])[0] || '?';
@@ -1236,6 +1242,11 @@
         const ch = document.getElementById('wbChannel').value;
         if (!text) return;
         const o = parse(text, ch);
+        const missing = [o.cust === '?' && '客戶（甲、乙、丙）', !o.model && '機種（例如 A1）', o.type === '追加' && !o.qty && '數量（例如 500 片）'].filter(Boolean);
+        if (missing.length) {
+          trace.innerHTML = step('1', '讀訊息，轉成工單', T.llm, `<div class="wb-warn">⚠️ 這則訊息缺少：${missing.join('、')}。Agent 不會用猜的排程，已請業務補齊後再送出。</div>`);
+          return;
+        }
         const steps = [];
         const push = async html => { steps.push(html); trace.innerHTML = steps.join(''); await new Promise(r => setTimeout(r, window.WB_FAST ? 0 : 450)); };
         trace.innerHTML = '';
@@ -1273,7 +1284,7 @@
         const other = opts.find(p => p !== best);
         await push(step('4', '寫建議給生管', T.llm,
           `建議<strong>方案 ${best.key}</strong>：${best.label}。${o.cust} 的追加 ${o.qty.toLocaleString()} 片 ${best.fin} 完成，${best.late.length ? best.late.join('、') : '不會擠掉任何有罰則的單'}，${best.setups ? `多換線 ${best.setups} 次` : '不用多換線'}。` +
-          `方案 ${other.key} 雖然 ${other.fin} 完成，${other.late.length ? '但' + other.late.join('、') + '，' : '但'}要多換線 ${other.setups} 次（約 ${Math.round(other.setups * CO * RATE)} 片產能）。<br/>給業務回覆${o.cust}的話：「追加 ${o.qty} 片確定 ${best.fin} 完成，隔天出貨。」`));
+          `方案 ${other.key} 雖然 ${other.fin} 完成，${other.late.length ? '但' + other.late.join('、') + '，' : '但'}要多換線 ${other.setups} 次（約 ${Math.round(other.setups * CO * RATE)} 片產能）。<br/>給業務回覆${o.cust}的話：「追加 ${o.qty.toLocaleString()} 片確定 ${best.fin} 完成，完成後即可出貨。」`));
         pending = { kind: 'add', opts, o };
         await push(step('5', '等人核准', T.human,
           `<div class="alert-actions">${opts.map(p => `<button class="${p === best ? 'active' : ''}" onclick="WB.approve('${p.key}')">核准方案 ${p.key}${p === best ? '（建議）' : ''}</button>`).join('')}</div>`));
