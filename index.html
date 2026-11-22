@@ -611,6 +611,27 @@
       box-shadow: 0 8px 24px rgba(31,36,33,.18);
     }
     .tag[data-tip]:hover::after { background: #fff !important; color: #1f2421 !important; border-color: #8cc63f !important; }
+    /* ---- Agent 工作台下拉選單：統一高度與外觀 ---- */
+    .wb-row { align-items: stretch; }
+    .wb-row select {
+      -webkit-appearance: none; appearance: none; height: 38px; min-width: 120px; flex: none;
+      padding: 0 30px 0 12px; border-radius: 8px; border: 1px solid #d9dfd1; background-color: #fff; color: #1f2421;
+      font-size: 13.5px; font-weight: 600; font-family: inherit; line-height: 38px; cursor: pointer;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%235d8f22' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 11px center;
+    }
+    .wb-row select:focus { outline: 2px solid rgba(140,198,63,.5); outline-offset: 1px; }
+    .wb-row .btn-ai, .wb-row .wb-reset { height: 38px; }
+    /* ---- Agent 工作台：色條下的順序文字與圖例 ---- */
+    .wb-seq { grid-column: 2 / 4; display: flex; flex-wrap: wrap; align-items: center; gap: 3px 4px; font-size: 11.5px; color: #3a403a; margin-top: -1px; }
+    .wb-seq i { font-style: normal; background: #f0f3eb; border: 1px solid #d9dfd1; border-radius: 5px; padding: 1px 6px; white-space: nowrap; }
+    .wb-seq i.sq-new { background: rgba(140,198,63,.18); border-color: #8cc63f; color: #3d6b14; font-weight: 700; }
+    .wb-seq i.sq-late { background: rgba(239,68,68,.12); border-color: #ef4444; color: #c53030; font-weight: 700; }
+    .wb-seq i.sq-setup { background: rgba(245,158,11,.14); border-color: #f59e0b; color: #b7791f; }
+    .wb-seq b { color: #6b7268; font-weight: 400; }
+    .wb-legend2 { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 11.5px; color: #6b7268; margin: 6px 0 2px 70px; }
+    .wb-legend2 i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 4px; vertical-align: -1px; }
+    .wb-legend2 .lg-setup { background: repeating-linear-gradient(45deg,#f59e0b,#f59e0b 3px,#b45309 3px,#b45309 6px); }
 </style>
 </head>
 <body>
@@ -628,7 +649,9 @@
         <span class="badge zero" data-tip="不買新機台：多出的貨來自 4 條 SMT 線少換線、少等料，不是新設備。">✓ 不買新機台</span>
         <span class="badge zero" data-tip="加班不增加：SMT 開機時數維持 9 月的 1,003 hr，多出的產能來自停機變少。">✓ 加班不增加</span>
         <span class="badge zero" data-tip="甲的追加單不拒絕：一張都照接，只決定怎麼排，不再擠掉有罰則的乙、丙。">✓ 甲的追加單不拒絕</span>
-        <span class="badge cost" data-tip="資料來源：數字來自智谷個案資料 1–3；導入後直接讀 SMT 機台紀錄、業務 LINE 群組、課長日報，作業員不用多輸入。成本：共用資料表＋大型語言模型訂閱，工具不綁定；先 1 條線試點，看到效果再加，金額待查證。">ⓘ 資料來源與成本</span>
+        <span class="badge zero" data-tip="作業員不多輸入：資料直接來自 SMT 機台紀錄、LINE、課長日報，不增加作業員輸入。">✓ 作業員不多輸入</span>
+        <span class="badge zero" data-tip="課長不被盯：儀表板只顯示線與停機原因，不顯示個人。">✓ 課長不被盯</span>
+        <span class="badge cost" data-tip="資料來源：數字來自智谷個案資料 1–3；導入後直接讀 SMT 機台紀錄、業務 LINE 群組、課長日報，作業員不用多輸入。成本：共用資料表＋大型語言模型訂閱，工具不綁定；先 1 條線試點，看到效果再加。軟體訂閱約 NT$2～5 千／月【我猜的】（共用資料表約 3 個帳號、AI 工具 1～2 個帳號，依常見雲端工具每人每月約 US$10～30 估），不到每月效益 205～298 萬的 0.3%。">ⓘ 資料來源與成本</span>
       </div>
     </header>
 
@@ -742,6 +765,7 @@
             <button class="btn-ai" id="wbRun">▶ 交給 Agent</button><button id="wbReset" onclick="WB.reset()" class="wb-reset">↺ 重置</button>
           </div>
           <div class="wb-label" style="margin-top:12px">今日 SMT 排程（9/16 示意：單號、每張單的片數、哪張單排在哪條線，都是【我猜的】）</div>
+          <div class="kpi-note" style="margin:2px 0 6px">怎麼編的：依 9 月平日每天約 4,700 片 ÷ 4 條線，推估每條線一天約 1,200 片。</div>
           <div id="wbSched"></div>
           <div class="kpi-note">只畫正常班 08:00–18:00（含現有加班，不再增加）；做不完的片數標在右邊，順延到隔天早上。紅色＝今天交期的單被擠到明天。</div>
         </div>
@@ -756,7 +780,7 @@
     <details class="assumptions" id="toolsUsed">
       <summary>🧰 這個 Demo 和提案是用哪些工具做出來的<span>Claude Code、Python、HTML／JavaScript、Google Drive、Chrome；點開看各自用在哪</span></summary>
       <div class="tools-grid"><div><strong>Claude Code（AI 助手）</strong><span>讀個案單與 3 份資料、找出 SMT 是瓶頸、寫回測與 Demo 程式、排版提案；每個數字都由我對回原始資料</span></div><div><strong>Python</strong><span>整理資料1–3、迴歸（追加次數→停機、稼動率→準時率）、9 月回測、畫趨勢與停機圖</span></div><div><strong>HTML／JavaScript</strong><span>離線 Demo 與 Agent 工作台：不連網、不需金鑰，資料不出電腦</span></div><div><strong>Google Drive</strong><span>取得智谷提供的個案單與三份 Excel</span></div><div><strong>Chrome</strong><span>把提案網頁輸出成 PDF</span></div></div>
-      <div class="kpi-note" style="margin-top:8px">導入昇嶺時工具不綁定：共用資料表可用 Notion 或 Google 試算表，AI 可接任何大型語言模型；算代價一律用規則。</div>
+      <div class="kpi-note" style="margin-top:8px">導入昇嶺時工具不綁定：共用資料表用哪一套都可以，AI 可接任何大型語言模型；算代價一律用規則。</div>
     </details>
 
     <!-- Main Content -->
@@ -767,11 +791,12 @@
           <div class="legend">
             <span class="legend-item"><span class="dot" style="background:#4f8db8"></span>甲 A1/A2</span>
             <span class="legend-item"><span class="dot" style="background:#8a76c0"></span>乙 B2</span>
-            <span class="legend-item"><span class="dot" style="background:#8cc63f"></span>丙 C1/C2</span>
+            <span class="legend-item"><span class="dot" style="background:#2f9e8f"></span>丙 C1/C2</span>
             <span class="legend-item"><span class="dot" style="background:#f59e0b"></span>換線</span>
             <span class="legend-item"><span class="dot" style="background:#ef4444"></span>等料／停機</span>
           </div>
         </div>
+        <div class="kpi-note" style="margin:-4px 0 10px">怎麼編的：依 9 月平日每天約 4,700 片 ÷ 4 條線，推估每條線一天約 1,200 片（和提案 P8 一致）。</div>
 
         <div class="gantt-wrap">
           <div class="gantt-axis">
@@ -1166,12 +1191,18 @@
             const left = (x.s - 8) / W * 100, w = (Math.min(x.e, DAY_END) - x.s) / W * 100;
             if (x.setup) return `<div class="wb-blk setup" style="left:${left}%;width:${w}%" title="換線 0.9 hr"></div>`;
             const cls = x.isNew ? 'new' : (x.due === '今天' && x.e > DAY_END ? 'late' : 'c' + x.cust);
-            const label = w > 9 ? `${x.isNew ? '追加 ' : ''}${x.cust}${x.model}` : '';
+            const label = w > 9 ? `${x.isNew ? '追加 ' : ''}${x.cust}${x.model}` : (w > 4 ? (x.isNew ? '追' : x.cust) : '');
             return `<div class="wb-blk ${cls}" style="left:${left}%;width:${w}%" title="${x.cust} ${x.id} ${x.model} ${x.qty} 片">${label}</div>`;
           }).join('');
           const tag = over ? `<span class="wb-over ${overLate ? 'bad' : ''}">${overLate ? '⚠ 交期單 ' : ''}+${over.toLocaleString()} 片延到明早</span>` : '<span class="wb-over ok">今天做完</span>';
-          return `<div class="wb-line"><span>${l.line}</span><div class="wb-track">${blocks}</div>${tag}</div>`;
-        }).join('') + `<div class="wb-line"><span></span><div class="wb-axis"><i>08</i><i>10</i><i>12</i><i>14</i><i>16</i><i>18</i></div><span></span></div>`;
+          // 有變動的線（插單、停用舊料、延遲），在色條下方用文字寫出順序，避免色條太窄看不到字
+          const lay = layout(l.jobs);
+          const changed = lay.some(x => x.isNew || x.late || String(x.id).includes('停') || (!x.setup && x.due === '今天' && x.e > DAY_END));
+          const seq = changed ? `<div class="wb-seq">${lay.map(x => x.setup ? '<i class="sq-setup">換線</i>'
+            : `<i class="${x.isNew ? 'sq-new' : (x.due === '今天' && x.e > DAY_END ? 'sq-late' : '')}">${x.isNew ? '追加 ' : ''}${x.cust}${x.model} ${x.qty.toLocaleString()} 片 ${hhmm(x.s)}–${x.e > DAY_END ? '明早' : hhmm(x.e)}</i>`).join('<b>→</b>')}</div>` : '';
+          return `<div class="wb-line"><span>${l.line}</span><div class="wb-track">${blocks}</div>${tag}${seq}</div>`;
+        }).join('') + `<div class="wb-line"><span></span><div class="wb-axis"><i>08</i><i>10</i><i>12</i><i>14</i><i>16</i><i>18</i></div><span></span></div>`
+          + `<div class="wb-legend2"><span><i style="background:#4f8db8"></i>甲</span><span><i style="background:#8a76c0"></i>乙</span><span><i style="background:#2f9e8f"></i>丙</span><span><i style="background:#6fa83a"></i>追加單</span><span><i class="lg-setup"></i>換線</span><span><i style="background:#dc2626"></i>今天交期被擠到明天</span></div>`;
       }
 
       function reset() {
@@ -1238,7 +1269,7 @@
         let body = '';
         if (pending.kind === 'add') {
           const p = pending.opts.find(x => x.key === key); sched = p.S; renderSched();
-          body = `✓ 生管已核准方案 ${key}<br/>→ 業務：回覆${pending.o.cust}「${p.fin} 完成」<br/>→ ${sched[p.li].line} 課長：排程已更新${p.setups ? `，${hhmm(8)} 前備好 ${pending.o.model} 的料與飛達` : ''}<br/>→ 倉庫：${pending.o.model} 追加 ${pending.o.qty} 片備料<br/>→ 決策紀錄表：誰、何時、選了哪個方案、代價多少（週會對帳用）`;
+          body = `✓ 生管已核准方案 ${key}<br/>→ 業務：回覆${pending.o.cust}「${p.fin} 完成」<br/>→ ${sched[p.li].line} 課長：排程已更新${p.setups ? `，換線前 1 小時備好 ${pending.o.model} 的料與飛達` : ''}<br/>→ 倉庫：${pending.o.model} 追加 ${pending.o.qty} 片備料<br/>→ 決策紀錄表：誰、何時、選了哪個方案、代價多少（週會對帳用）`;
         } else {
           const { li, model, next, done } = pending;
           if (li >= 0) { sched[li].jobs = sched[li].jobs.map(j => j.model === model ? { ...j, qty: done, id: j.id + '（停）' } : j); renderSched(); }
