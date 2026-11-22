@@ -1,0 +1,1219 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flow 瓶頸排程 Demo</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #131a2e;
+      --panel-2: #19233d;
+      --border: #263459;
+      --text: #e8eefc;
+      --muted: #93a4cc;
+      --primary: #4f8cff;
+      --primary-glow: rgba(79, 140, 255, 0.25);
+      --green: #22c55e;
+      --green-bg: rgba(34, 197, 94, 0.14);
+      --amber: #f59e0b;
+      --amber-bg: rgba(245, 158, 11, 0.14);
+      --red: #ef4444;
+      --red-bg: rgba(239, 68, 68, 0.14);
+      --purple: #a855f7;
+      --cyan: #06b6d4;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif;
+      background: radial-gradient(circle at top right, #162244 0%, var(--bg) 55%);
+      color: var(--text);
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1360px;
+      margin: 0 auto;
+      padding: 20px 24px 48px;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 20px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .logo {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--primary), var(--cyan));
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      font-size: 18px;
+      color: #fff;
+      box-shadow: 0 6px 20px var(--primary-glow);
+    }
+    .brand h1 {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+    .brand p {
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .constraints {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .badge {
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+    }
+    .badge.zero {
+      border-color: rgba(34, 197, 94, 0.4);
+      background: var(--green-bg);
+      color: #86efac;
+    }
+
+    /* Control Bar */
+    .controls-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      display: grid;
+      grid-template-columns: 1.2fr 1.6fr 1fr;
+      gap: 20px;
+      align-items: center;
+    }
+    @media (max-width: 1024px) {
+      .controls-card { grid-template-columns: 1fr; }
+    }
+    .control-group label {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .preset-btns, .mode-btns {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    button {
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--panel-2);
+      color: var(--text);
+      padding: 8px 13px;
+      border-radius: 9px;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.15s ease;
+    }
+    button:hover { border-color: var(--primary); }
+    button.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+      box-shadow: 0 4px 14px var(--primary-glow);
+    }
+    button.btn-ai.active {
+      background: linear-gradient(135deg, #22c55e, #06b6d4);
+      border-color: transparent;
+      color: #04131c;
+    }
+    button.btn-danger {
+      background: var(--red-bg);
+      border-color: rgba(239, 68, 68, 0.45);
+      color: #fca5a5;
+    }
+    button.btn-danger:hover {
+      background: rgba(239, 68, 68, 0.25);
+    }
+
+    .sliders {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .slider-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+    }
+    .slider-header span:last-child {
+      color: var(--cyan);
+      font-weight: 700;
+    }
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+
+    /* KPI Grid */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 1100px) {
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    .kpi-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+    .kpi-title {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .kpi-value {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 6px;
+    }
+    .kpi-delta {
+      font-size: 12px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 6px;
+    }
+    .delta-good { background: var(--green-bg); color: #86efac; }
+    .delta-bad { background: var(--red-bg); color: #fca5a5; }
+    .delta-neutral { background: var(--amber-bg); color: #fcd34d; }
+
+    /* Main Workspace */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1.65fr 1fr;
+      gap: 20px;
+    }
+    @media (max-width: 1080px) {
+      .main-grid { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 20px;
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 3px;
+      display: inline-block;
+    }
+
+    /* Gantt Chart */
+    .gantt-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .gantt-axis {
+      display: grid;
+      grid-template-columns: 130px 1fr;
+      gap: 12px;
+      font-size: 11px;
+      color: var(--muted);
+      padding-bottom: 4px;
+      border-bottom: 1px dashed var(--border);
+    }
+    .axis-ticks {
+      display: flex;
+      justify-content: space-between;
+    }
+    .gantt-row {
+      display: grid;
+      grid-template-columns: 130px 1fr;
+      gap: 12px;
+      align-items: center;
+    }
+    .machine-label {
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .machine-sub {
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .machine-sub.bottleneck {
+      color: #fcd34d;
+      font-weight: 600;
+    }
+    .track {
+      height: 38px;
+      background: #0d1426;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+    }
+    .block {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: #fff;
+      border-right: 1px solid rgba(0,0,0,0.35);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      padding: 0 4px;
+      transition: all 0.3s ease;
+    }
+    .block.spec-a { background: #3b82f6; }
+    .block.spec-b { background: #8b5cf6; }
+    .block.spec-c { background: #06b6d4; color: #04131c; }
+    .block.setup {
+      background: repeating-linear-gradient(
+        45deg,
+        #f59e0b,
+        #f59e0b 6px,
+        #b45309 6px,
+        #b45309 12px
+      );
+      color: #fff;
+      font-size: 10px;
+    }
+    .block.idle {
+      background: repeating-linear-gradient(
+        -45deg,
+        rgba(239, 68, 68, 0.25),
+        rgba(239, 68, 68, 0.25) 6px,
+        rgba(239, 68, 68, 0.1) 6px,
+        rgba(239, 68, 68, 0.1) 12px
+      );
+      color: #fca5a5;
+      font-size: 10px;
+    }
+
+    /* Order Table */
+    .table-wrap {
+      margin-top: 18px;
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+    }
+    th, td {
+      text-align: left;
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    th {
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 11.5px;
+    }
+    .pill {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .pill-ok { background: var(--green-bg); color: #86efac; }
+    .pill-warn { background: var(--amber-bg); color: #fcd34d; }
+    .pill-late { background: var(--red-bg); color: #fca5a5; }
+    .pill-hold { background: rgba(168, 85, 247, 0.18); color: #d8b4fe; }
+
+    /* Right Column: AI Agent & RAG */
+    .right-col {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .agent-feed {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 320px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    .alert-box {
+      background: var(--panel-2);
+      border-left: 4px solid var(--amber);
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 13px;
+    }
+    .alert-box.critical { border-left-color: var(--red); }
+    .alert-box.success { border-left-color: var(--green); }
+    .alert-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .alert-actions {
+      margin-top: 8px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .alert-actions button {
+      padding: 5px 10px;
+      font-size: 11.5px;
+    }
+
+    /* RAG Assistant */
+    .rag-prompts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+    .rag-prompts button {
+      font-size: 11.5px;
+      padding: 6px 10px;
+      border-radius: 999px;
+    }
+    .rag-answer {
+      background: #0d1426;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 13px;
+      color: #dbeafe;
+      min-height: 100px;
+    }
+    .rag-answer strong { color: #86efac; }
+
+    /* ---- v2 additions ---- */
+    .badge.cost {
+      border-style: dashed;
+      color: var(--muted);
+      cursor: help;
+    }
+    .tag {
+      display: inline-block;
+      font-size: 10.5px;
+      font-weight: 700;
+      padding: 1px 7px;
+      border-radius: 5px;
+      margin-left: 6px;
+      vertical-align: middle;
+      letter-spacing: 0.3px;
+    }
+    .tag.rule { background: rgba(147, 164, 204, 0.18); color: #c7d2ee; border: 1px solid rgba(147, 164, 204, 0.35); }
+    .tag.ai { background: rgba(6, 182, 212, 0.16); color: #67e8f9; border: 1px solid rgba(6, 182, 212, 0.4); }
+    .factory-name {
+      font-size: 15px;
+      font-weight: 700;
+    }
+    .factory-note {
+      font-size: 12px;
+      color: #fcd34d;
+      margin-top: 2px;
+    }
+    .kpi-note {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+    .assumptions {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px 18px;
+      margin-bottom: 20px;
+      font-size: 13px;
+    }
+    .assumptions summary {
+      cursor: pointer;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .assumptions summary span { color: var(--muted); font-weight: 500; font-size: 12px; margin-left: 8px; }
+    .assumptions table { margin-top: 10px; }
+    .assumptions .src-todo { color: #fcd34d; }
+    .assumptions .src-team { color: #c7d2ee; }
+    .assumptions .src-derived { color: #67e8f9; }
+    .assumptions .formula {
+      margin-top: 10px;
+      padding: 10px 12px;
+      background: #0d1426;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 12.5px;
+      color: #dbeafe;
+      line-height: 1.7;
+    }
+    .card.phase2 { opacity: 0.85; border-style: dashed; }
+    .phase2-note {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .busy-card { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 14px 18px; margin-bottom: 20px; }
+    .busy-row { display: grid; grid-template-columns: 120px 1fr; gap: 12px; align-items: center; margin-top: 10px; font-size: 12.5px; }
+    .busy-bar { display: flex; height: 30px; border-radius: 8px; overflow: hidden; background: var(--panel-2); }
+    .busy-seg { display: flex; align-items: center; justify-content: center; font-size: 11.5px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; border-right: 1px solid rgba(0,0,0,0.25); }
+    .seg-sync { background: #b45309; } .seg-fire { background: #dc2626; } .seg-hunt { background: #be185d; }
+    .seg-plan { background: #2563eb; } .seg-routine { background: #475569; } .seg-free { background: #16a34a; }
+    .busy-legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 11.5px; color: var(--muted); margin-top: 10px; }
+    .busy-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 4px; vertical-align: -1px; }
+
+    .tools-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 10px; }
+    .tools-grid div { background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; font-size: 12.5px; }
+    .tools-grid strong { display: block; font-size: 13.5px; margin-bottom: 3px; color: #67e8f9; }
+    /* ---- Agent 工作台 ---- */
+    .wb-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12px; color: var(--muted); margin: 8px 0 2px; padding: 8px 10px; background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px; }
+    .wb-legend strong { color: var(--text); }
+    .tag.ok { background: rgba(34,197,94,.14); color: #86efac; border: 1px solid rgba(34,197,94,.4); }
+    .agent-wb { margin-bottom: 20px; }
+    .wb-grid { display: grid; grid-template-columns: 1fr 1.15fr; gap: 18px; margin-top: 8px; }
+    .wb-label { font-size: 12.5px; font-weight: 700; color: var(--muted); margin-bottom: 6px; }
+    .wb-samples { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+    .wb-samples button, .wb-row select { background: var(--panel-2); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 5px 10px; font-size: 12.5px; cursor: pointer; }
+    .agent-wb textarea { width: 100%; background: #0d1426; color: var(--text); border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; font-size: 13.5px; font-family: inherit; resize: vertical; }
+    .wb-row { display: flex; gap: 8px; margin-top: 8px; }
+    .wb-row .btn-ai { flex: 1; border-radius: 8px; padding: 8px; font-weight: 700; cursor: pointer; border: none; background: linear-gradient(90deg,#22c55e,#06b6d4); color: #04131c; font-size: 14px; }
+    .wb-line { display: grid; grid-template-columns: 62px 1fr 140px; gap: 8px; align-items: center; margin: 5px 0; font-size: 12px; }
+    .wb-track { position: relative; height: 26px; background: var(--panel-2); border-radius: 6px; overflow: hidden; }
+    .wb-over { font-size: 11px; color: var(--amber-t, #fcd34d); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .wb-over.bad { color: #fca5a5; font-weight: 700; } .wb-over.ok { color: #86efac; }
+    .wb-reset { background: var(--panel-2); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 0 12px; cursor: pointer; font-size: 13px; }
+    .wb-shift { position: absolute; left: 0; top: 0; bottom: 0; width: 76.9%; border: 1.5px solid rgba(79,140,255,.7); border-radius: 6px; pointer-events: none; z-index: 2; }
+    .wb-blk { position: absolute; top: 3px; bottom: 3px; border-radius: 4px; font-size: 11px; font-weight: 700; color: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden; white-space: nowrap; }
+    .wb-blk.c甲 { background: #3b82f6; } .wb-blk.c乙 { background: #8b5cf6; } .wb-blk.c丙 { background: #0891b2; }
+    .wb-blk.setup { background: repeating-linear-gradient(45deg,#f59e0b,#f59e0b 4px,#b45309 4px,#b45309 8px); }
+    .wb-blk.new { background: #16a34a; } .wb-blk.late { background: #dc2626; }
+    .wb-axis { display: flex; justify-content: space-between; font-size: 10.5px; color: var(--muted); }
+    .wb-axis i { font-style: normal; }
+    .wb-trace { display: flex; flex-direction: column; gap: 8px; }
+    .wb-step { background: var(--panel-2); border: 1px solid var(--border); border-left: 3px solid var(--cyan); border-radius: 10px; padding: 8px 11px; font-size: 13px; animation: wbIn .35s ease; }
+    .wb-step-h { font-weight: 700; margin-bottom: 4px; } .wb-step-h b { display: inline-block; width: 20px; height: 20px; border-radius: 50%; background: var(--cyan); color: #04131c; text-align: center; font-size: 12px; line-height: 20px; margin-right: 4px; }
+    .wb-kv td { padding: 2px 8px 2px 0; font-size: 12.5px; } .wb-kv td:nth-child(odd) { color: var(--muted); }
+    .wb-opt { font-size: 12px; } .wb-opt th, .wb-opt td { padding: 3px 6px; }
+    .wb-warn { margin-top: 6px; color: #fcd34d; font-size: 12.5px; }
+    .wb-step .r { color: #fca5a5; font-weight: 700; } .wb-step .g { color: #86efac; font-weight: 700; }
+    @keyframes wbIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <div class="logo">FA</div>
+        <div>
+          <h1>Flow｜SMT 瓶頸排程與追加單助理（K12 Demo）</h1>
+          <p>智谷網絡挑戰題目：「人更忙了，貨卻沒有多出去」— 昇嶺電子顧問提案互動原型</p>
+        </div>
+      </div>
+      <div class="constraints">
+        <span class="badge zero">✓ 不加人</span>
+        <span class="badge zero">✓ 不買新機台</span>
+        <span class="badge zero">✓ 加班不增加</span>
+        <span class="badge zero">✓ 甲的追加單不拒絕</span>
+        <span class="badge cost" title="軟體：共用資料表＋大型語言模型訂閱，工具不綁定（見提案成本）&#10;作業員不多輸入：資料來自 SMT 機台紀錄、LINE 群組、既有日報">ⓘ 資料來源與成本</span>
+      </div>
+    </header>
+
+    <!-- Controls -->
+    <section class="controls-card">
+      <div class="control-group">
+        <label>1. 工廠情境</label>
+        <div class="factory-name">昇嶺電子｜4 條 SMT 線 × 6 機種</div>
+        <div class="factory-note">基準＝個案資料 2026 年 9 月實際值（智谷提供，虛構公司示範數字）</div>
+      </div>
+
+      <div class="sliders">
+        <div class="slider-item">
+          <div class="slider-header">
+            <span>每月追加單與換零件（次）</span>
+            <span id="evVal">12 次</span>
+          </div>
+          <input type="range" id="evSlider" min="2" max="20" value="12" />
+          <div class="kpi-note">4 月 3 次 → 9 月 12 次。換線、等料、拋料停機都跟著它變多（依近 12 個月資料迴歸）</div>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label>2. 排程與管理模式對比</label>
+        <div class="mode-btns">
+          <button id="btnLegacy">現況：口頭接單＋固定換線假設</button>
+          <button id="btnAi" class="btn-ai active">Flow（規則＋AI 助理）</button>
+          <button id="btnShock" class="btn-danger">⚡ 重播 9/16 甲追加 500 片</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- KPI Cards (monthly) -->
+    <section class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-title">準時交貨率</div>
+        <div class="kpi-value" id="kpiOtd">--%</div>
+        <span class="kpi-delta" id="deltaOtd">--</span>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-title">每月出貨</div>
+        <div class="kpi-value" id="kpiOutput">-- 千片</div>
+        <span class="kpi-delta" id="deltaOutput">--</span>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-title">每月 SMT 換線停機</div>
+        <div class="kpi-value" id="kpiSetup">-- hr</div>
+        <span class="kpi-delta" id="deltaSetup">--</span>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-title">SMT 稼動率（★瓶頸）</div>
+        <div class="kpi-value" id="kpiBottleneck">--%</div>
+        <span class="kpi-delta" id="deltaBottleneck">--</span>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-title">每月毛利增加</div>
+        <div class="kpi-value" id="kpiSaved">-- 萬</div>
+        <span class="kpi-delta" id="deltaSaved">--</span>
+      </div>
+    </section>
+    <div class="kpi-note" id="kpiNote" style="margin:-12px 0 14px">Flow 數字為<strong>推估區間</strong>（保守～樂觀），算法見下方「假設與資料來源」。開機時數維持 9 月的 1,003 hr＝加班不增加。</div>
+
+    <!-- Assumptions panel -->
+    <details class="assumptions" id="assumptions">
+      <summary>📐 假設與資料來源<span>基準全部來自個案資料；團隊假設只有兩個，標【我猜的】</span></summary>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>參數</th><th>目前值</th><th>來源</th></tr>
+          </thead>
+          <tbody id="assumptionRows"></tbody>
+        </table>
+      </div>
+      <div class="formula">
+        <strong>推導邏輯（SMT 是瓶頸：出貨 ＝ SMT 正常運轉時數 × 150 片）</strong><br/>
+        ① 正常運轉 ＝ 開機 1,003 hr − 換線 − 等料 − 拋料故障（三種停機都隨「追加與換零件次數」線性增加，依 12 個月資料迴歸）<br/>
+        ② Flow：換線 × (1 − 假設A)，等料 × (1 − 假設B)；拋料故障不計入改善（保守）<br/>
+        ③ 出貨 ＝ 正常運轉 × 150；毛利 ＝ 多出的片數 × 180 元（售價 1,200 × 毛利 15%）<br/>
+        ④ 準時率 ＝ −13.4 ＋ 1.21 × 稼動率（近 12 個月資料迴歸）
+      </div>
+    </details>
+
+    <!-- SMT hours breakdown -->
+    <section class="busy-card">
+      <div class="card-title">⏱️ 人更忙了，時間去哪了？SMT 4 條線每月開機時數拆解 <span class="tag rule">機台紀錄</span></div>
+      <div class="kpi-note">九月加班變兩倍、開機時數比四月多 122 hr，正常運轉反而少 13 hr：多開的時間全被換線、等料、拋料吃掉。</div>
+      <div class="busy-row"><div><strong>現況</strong></div><div class="busy-bar" id="busyLegacy"></div></div>
+      <div class="busy-row"><div><strong>Flow（中位）</strong></div><div class="busy-bar" id="busyFlow"></div></div>
+      <div class="busy-legend">
+        <span><i class="seg-plan"></i>正常運轉（出貨）</span>
+        <span><i class="seg-fire"></i>換線停機</span>
+        <span><i class="seg-sync"></i>等料停機</span>
+        <span><i class="seg-routine"></i>拋料與故障</span>
+      </div>
+    </section>
+
+    <!-- ===== Agent 工作台（離線可用） ===== -->
+    <section class="card agent-wb" id="agentWb">
+      <div class="card-header">
+        <div class="card-title">🤖 Agent 工作台：把一則追加或換零件訊息交給 Agent <span class="tag ai">離線版</span></div>
+        <div class="kpi-note" style="margin:0">讀訊息、寫建議由規則模擬 AI 的輸出；正式版交給大型語言模型（工具不綁定）。<strong>算代價一律用規則，核准一律由人。</strong></div>
+      </div>
+      <div class="wb-legend"><strong>圖例：</strong><span><span class="tag rule">規則</span> 固定公式算，可追溯，不用 AI（例：換線 0.9 hr、罰款＝批量×單價×罰率）</span><span><span class="tag ai">LLM</span> 整理文字：LINE、電話內容轉成工單；把數字寫成建議</span><span><span class="tag ai">Speech</span> 電話錄音轉文字</span><span><span class="tag ai">Agent</span> 自己查排程、罰則等資料，提出方案</span><span><span class="tag ai">Flow</span> 核准後自動通知相關的人</span><span><span class="tag ai">Code／RAG／ML</span> 做儀表板／查知識庫／預測（後期）</span><span><span class="tag ok">人</span> 最後由生管核准，AI 不自己執行</span></div>
+      <div class="wb-grid">
+        <div>
+          <div class="wb-label">① 選一則 9 月真實訊息（資料3），或自己輸入</div>
+          <div class="wb-samples" id="wbSamples"></div>
+          <textarea id="wbInput" rows="3"></textarea>
+          <div class="wb-row">
+            <select id="wbChannel"><option>LINE</option><option>電話錄音</option><option>口頭</option><option>正式單</option></select>
+            <button class="btn-ai" id="wbRun">▶ 交給 Agent</button><button id="wbReset" onclick="WB.reset()" class="wb-reset">↺ 重置</button>
+          </div>
+          <div class="wb-label" style="margin-top:12px">今日 SMT 排程（9/16 示意：單號與批量為【我猜的】）</div>
+          <div id="wbSched"></div>
+          <div class="kpi-note">只畫正常班 08:00–18:00（含現有加班，不再增加）；做不完的片數標在右邊，順延到隔天早上。紅色＝今天交期的單被擠到明天。</div>
+        </div>
+        <div>
+          <div class="wb-label">② Agent 的工作過程</div>
+          <div id="wbTrace" class="wb-trace"><div class="kpi-note">按「交給 Agent」開始。</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tools used -->
+    <section class="busy-card" id="toolsUsed">
+      <div class="card-title">🧰 這個 Demo 和提案是用哪些工具做出來的</div>
+      <div class="tools-grid"><div><strong>Claude Code（AI 助手）</strong><span>讀個案單與 3 份資料、找出 SMT 是瓶頸、寫回測與 Demo 程式、排版提案；每個數字都由組員對回原始資料</span></div><div><strong>Python</strong><span>整理資料1–3、迴歸（追加次數→停機、稼動率→準時率）、9 月回測、畫趨勢與停機圖</span></div><div><strong>HTML／JavaScript</strong><span>離線 Demo 與 Agent 工作台：不連網、不需金鑰，資料不出電腦</span></div><div><strong>Google Drive</strong><span>取得智谷提供的個案單與三份 Excel</span></div><div><strong>Chrome</strong><span>把提案網頁輸出成 PDF</span></div></div>
+      <div class="kpi-note" style="margin-top:8px">導入昇嶺時工具不綁定：共用資料表可用 Notion 或 Google 試算表，AI 可接任何大型語言模型；算代價一律用規則。</div>
+    </section>
+
+    <!-- Main Content -->
+    <div class="main-grid">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📊 SMT 排程視覺化（以 9/16 為例，單日班表示意；W0916、批量、線別為【我猜的】）</div>
+          <div class="legend">
+            <span class="legend-item"><span class="dot" style="background:#3b82f6"></span>甲 A1/A2</span>
+            <span class="legend-item"><span class="dot" style="background:#8b5cf6"></span>乙 B2</span>
+            <span class="legend-item"><span class="dot" style="background:#06b6d4"></span>丙 C1/C2</span>
+            <span class="legend-item"><span class="dot" style="background:#f59e0b"></span>換線</span>
+            <span class="legend-item"><span class="dot" style="background:#ef4444"></span>等料／停機</span>
+          </div>
+        </div>
+
+        <div class="gantt-wrap">
+          <div class="gantt-axis">
+            <div>SMT 線 / 人工站</div>
+            <div class="axis-ticks">
+              <span>08:00</span><span>10:00</span><span>12:00</span><span>14:00</span><span>16:00</span><span>17:00</span>
+            </div>
+          </div>
+          <div id="ganttRows"></div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>工單</th>
+                <th>客戶／機種</th>
+                <th>料況 <span class="tag rule">規則</span></th>
+                <th>延遲罰則</th>
+                <th>系統處置與排程結果</th>
+              </tr>
+            </thead>
+            <tbody id="orderTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="right-col">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🤖 追加單與換零件助理（LINE 推播模擬）<span class="tag rule">規則算代價</span><span class="tag ai">AI 讀訊息、寫人話</span></div>
+          </div>
+          <div class="agent-feed" id="agentFeed"></div>
+        </div>
+
+        <div class="card phase2">
+          <div class="card-header">
+            <div class="card-title">📚 第二階段（規劃中）：換線與異常知識庫 <span class="tag ai">AI 檢索</span></div>
+          </div>
+          <div class="phase2-note">不在三個月主線內。內容由課長既有經驗與 SOP 匯入，<strong>品保簽核後才上線</strong>；AI 只負責檢索，不改測試標準。</div>
+          <div class="rag-prompts">
+            <button onclick="askRag('mold')">🔧 換線後首件不良怎麼辦？</button>
+            <button onclick="askRag('qc')">🔍 換線前要先備哪些東西？</button>
+          </div>
+          <div class="rag-answer" id="ragAnswer">
+            點選上方問題，示意課長用手機查詢廠內 SOP（以下為格式示意）。
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ===== 基準：個案資料 2026/9（資料1、資料3）；改這裡即可重算 =====
+    const BASE = {
+      openHr: 1003,          // SMT 4 線每月開機時數（9 月，加班不增加 → 固定）
+      pcsPerHr: 150,         // SMT 每片 24 秒 → 每線每小時 150 片
+      marginPerPcs: 180,     // 售價 1,200 × 毛利 15%
+      // 停機 ＝ a ＋ b × 每月追加與換零件次數（近 12 個月迴歸；12 次時 ≈ 9 月實際 133／62／48）
+      co: [21.0, 9.33], wait: [17.4, 3.72], jam: [19.4, 2.38],
+      otd: [-13.37, 1.212],  // 準時率 ＝ a ＋ b × 稼動率（迴歸）
+      penaltyClaim: 84,      // 9 月延遲罰款 59 萬 ＋ 客訴退貨 25 萬
+      sepOtd: 78,
+      lines: [
+        { name: 'SMT 1 線', sub: '★ 瓶頸（4 線共同）', bottleneck: true },
+        { name: 'SMT 2 線', sub: '★ 瓶頸', bottleneck: true },
+        { name: 'SMT 3 線', sub: '★ 瓶頸', bottleneck: true },
+        { name: '人工站', sub: '插件→測試→組裝→包裝（非瓶頸）', bottleneck: false }
+      ]
+    };
+
+    const ASSUME = {
+      coCut: [0.30, 0.45],   // 假設A【我猜的】：同機種合併＋換線前先備料、上飛達
+      waitCut: [0.40, 0.55]  // 假設B【我猜的】：單一入口＋換零件即時通知＋開工前查料
+    };
+
+    const state = { mode: 'ai', events: 12, shockTriggered: false, approvedPlan: null };
+
+    const RAG_DATA = {
+      mold: `<strong>【示意】命中：換線首件檢查 SOP</strong><br/>
+      1. 確認鋼板、程式版本、飛達料號已切換。<br/>
+      2. 首件 AOI 與功能測試，不良時依 SOP 調整並記錄。<br/>
+      3. 無法排除時通知值班工程師。<em>內容以廠內 SOP 為準，品保簽核後匯入。</em>`,
+      qc: `<strong>【示意】命中：換線前備料清單</strong><br/>
+      1. 下一批的料捲已上飛達車（系統依排程提前 1 小時提醒倉庫）。<br/>
+      2. 下一批要用的飛達已備好（9/30 曾「換線等飛達」）；插件站依排程備好夾具（9/9、9/16 曾因夾具不夠、被借走而卡住）。<br/>
+      <em>提醒只推給倉庫與課長，不要求作業員輸入。</em>`
+    };
+    function askRag(key) { document.getElementById('ragAnswer').innerHTML = RAG_DATA[key]; }
+
+    const r0 = (x) => Math.round(x);
+    const r1 = (x) => +x.toFixed(1);
+    const pct = (x) => Math.round(x * 100);
+    const range = (a, b, fmt) => {
+      const [lo, hi] = a <= b ? [a, b] : [b, a];
+      const L = fmt(lo), H = fmt(hi);
+      return L === H ? `${L}` : `${L}–${H}`;
+    };
+
+    function computeMetrics() {
+      const b = BASE, e = state.events;
+      const co = b.co[0] + b.co[1] * e, wait = b.wait[0] + b.wait[1] * e, jam = b.jam[0] + b.jam[1] * e;
+      const run = b.openHr - co - wait - jam;
+      const util = run / b.openHr;
+      const otdOf = (u) => Math.min(97, b.otd[0] + b.otd[1] * u * 100);
+      const otd = otdOf(util);
+      const ship = run * b.pcsPerHr;
+      const legacy = { co, wait, jam, run, util, otd, ship };
+      const ai = [0, 1].map(i => {
+        const c2 = co * (1 - ASSUME.coCut[i]), w2 = wait * (1 - ASSUME.waitCut[i]);
+        const run2 = b.openHr - c2 - w2 - jam, u2 = run2 / b.openHr, otd2 = otdOf(u2);
+        const ship2 = run2 * b.pcsPerHr;
+        const gainPcs = ship2 - ship;
+        const lossCut = b.penaltyClaim * Math.max(0, (otd2 - otd) / Math.max(1, 100 - otd));
+        return { co: c2, wait: w2, jam, run: run2, util: u2, otd: otd2, ship: ship2, gain: ship2 / ship - 1,
+                 money: gainPcs * b.marginPerPcs / 1e4 + lossCut };
+      });
+      return { legacy, ai };
+    }
+
+    function renderKpis(m) {
+      const L = m.legacy, [lo, hi] = m.ai;
+      const set = (id, t) => (document.getElementById(id).textContent = t);
+      const setDelta = (id, t, type) => { const el = document.getElementById(id); el.textContent = t; el.className = `kpi-delta ${type}`; };
+      if (state.mode === 'ai') {
+        set('kpiOtd', `${range(lo.otd, hi.otd, r0)}%`);
+        set('kpiOutput', `${range(lo.ship / 1000, hi.ship / 1000, r1)} 千片`);
+        set('kpiSetup', `${range(lo.co, hi.co, r0)} hr`);
+        set('kpiBottleneck', `${range(lo.util, hi.util, pct)}%`);
+        set('kpiSaved', `${range(lo.money, hi.money, r0)} 萬`);
+        setDelta('deltaOtd', `▲ +${range(lo.otd - L.otd, hi.otd - L.otd, r0)} pts（目標 90%）`, 'delta-good');
+        setDelta('deltaOutput', `▲ +${range(lo.gain, hi.gain, pct)}%（目標 +10%）`, 'delta-good');
+        setDelta('deltaSetup', `▼ 少 ${range(L.co - lo.co, L.co - hi.co, r0)} hr`, 'delta-good');
+        setDelta('deltaBottleneck', `▲ +${range(lo.util - L.util, hi.util - L.util, pct)} pts`, 'delta-good');
+        setDelta('deltaSaved', '多出貨毛利＋少罰款客訴', 'delta-good');
+      } else {
+        set('kpiOtd', `${r0(L.otd)}%`);
+        set('kpiOutput', `${r1(L.ship / 1000)} 千片`);
+        set('kpiSetup', `${r0(L.co)} hr`);
+        set('kpiBottleneck', `${pct(L.util)}%`);
+        set('kpiSaved', '0 萬');
+        setDelta('deltaOtd', '⚠️ 乙、丙的單被擠掉', 'delta-bad');
+        setDelta('deltaOutput', '⚠️ 接單多、出貨沒多', 'delta-bad');
+        setDelta('deltaSetup', `⚠️ 排程只抓 52 hr／月`, 'delta-bad');
+        setDelta('deltaBottleneck', `⚠️ 等料 ${r0(L.wait)}、拋料 ${r0(L.jam)} hr`, 'delta-neutral');
+        setDelta('deltaSaved', `9 月損失 135 萬`, 'delta-bad');
+      }
+    }
+
+    function renderAssumptions(m) {
+      const L = m.legacy;
+      const rows = [
+        ['SMT 每月開機時數', `${BASE.openHr} hr`, 'real', '資料1 現場概況（9 月）；維持不變＝加班不增加'],
+        ['SMT 產速', `${BASE.pcsPerHr} 片／線／hr`, 'real', '資料2：SMT 24 秒／片；760 hr × 150 ＝ 114,000 片＝9 月出貨'],
+        ['每片毛利', `${BASE.marginPerPcs} 元`, 'real', '個案單：售價 1,200 元 × 毛利 15%'],
+        ['換線／等料／拋料停機', `${r0(L.co)}／${r0(L.wait)}／${r0(L.jam)} hr`, 'derived', '依追加與換零件次數迴歸（近 12 個月）'],
+        ['準時率', `${r0(L.otd)}%`, 'derived', '依 SMT 稼動率迴歸（近 12 個月）'],
+        ['假設A：換線停機減少', `${pct(ASSUME.coCut[0])}–${pct(ASSUME.coCut[1])}%`, 'team', '【我猜的】同機種合併＋換線前備料、上飛達；仍高於 4 月水準'],
+        ['假設B：等料停機減少', `${pct(ASSUME.waitCut[0])}–${pct(ASSUME.waitCut[1])}%`, 'team', '【我猜的】換零件即時通知＋開工前查料'],
+        ['拋料與故障', '不計入改善', 'team', '保守處理']
+      ];
+      const label = { real: '個案資料', team: '團隊假設', derived: '推導' };
+      document.getElementById('assumptionRows').innerHTML = rows.map(([k, v, s, note]) => `
+        <tr><td>${k}</td><td><strong>${v}</strong></td><td class="src-${s === 'real' ? 'team' : s === 'team' ? 'todo' : 'derived'}">${label[s]}｜${note}</td></tr>`).join('');
+    }
+
+    function renderGantt() {
+      const container = document.getElementById('ganttRows');
+      container.innerHTML = '';
+      const legacyTracks = [
+        [ { cls: 'spec-a', w: 30, t: '甲 A1' }, { cls: 'setup', w: 11, t: '換線' }, { cls: 'spec-c', w: 24, t: '丙 C1' }, { cls: 'setup', w: 11, t: '插單換線' }, { cls: 'spec-a', w: 24, t: '甲追加 A1 500' } ],
+        [ { cls: 'spec-b', w: 28, t: '乙 B2 W0914' }, { cls: 'setup', w: 10, t: '換線' }, { cls: 'idle', w: 12, t: '換線等飛達' }, { cls: 'spec-a', w: 22, t: '甲 A2' }, { cls: 'spec-b', w: 28, t: '乙 W0914（晚 1 天）' } ],
+        [ { cls: 'spec-c', w: 26, t: '丙 C2（舊料）' }, { cls: 'idle', w: 18, t: '換零件才通知' }, { cls: 'setup', w: 12, t: '換線' }, { cls: 'spec-c', w: 24, t: '丙 C2 拆掉重做' }, { cls: 'idle', w: 20, t: '等料' } ],
+        [ { cls: 'idle', w: 18, t: '等 SMT' }, { cls: 'spec-a', w: 26, t: '甲 插件測試' }, { cls: 'spec-b', w: 24, t: '乙 全檢' }, { cls: 'spec-c', w: 32, t: '加班趕乙' } ]
+      ];
+      const merge = state.shockTriggered && state.approvedPlan === 'merge';
+      const split = state.shockTriggered && state.approvedPlan === 'split';
+      const aiTracks = [
+        [ { cls: 'spec-a', w: merge ? 70 : 58, t: merge ? '甲 A1 ＋ 追加 500（同機種接續，零換線）' : '甲 A1（同機種合併）' }, { cls: 'setup', w: 7, t: '快換' }, { cls: 'spec-c', w: merge ? 23 : 35, t: merge ? '丙 C1（順延，交期內）' : '丙 C1' } ],
+        [ { cls: 'spec-b', w: split ? 42 : 52, t: split ? '乙 B2 W0914（被擠，晚 1 天）' : '乙 B2 W0914（罰則單優先，準時）' }, { cls: 'setup', w: 6, t: '快換' }, split ? { cls: 'spec-a', w: 52, t: '甲追加 A1 500（立即插入）' } : { cls: 'spec-a', w: 42, t: '甲 A2' } ],
+        [ { cls: 'spec-c', w: 45, t: '丙 C2 新料（舊料已凍結）' }, { cls: 'setup', w: 7, t: '快換' }, { cls: 'spec-c', w: 48, t: '丙 C1（料已到齊才開工）' } ],
+        [ { cls: 'spec-a', w: 34, t: '甲 插件測試' }, { cls: 'spec-b', w: 33, t: '乙 全檢' }, { cls: 'spec-c', w: 33, t: '丙 組裝包裝' } ]
+      ];
+      const tracks = state.mode === 'ai' ? aiTracks : legacyTracks;
+      BASE.lines.forEach((m, idx) => {
+        const row = document.createElement('div');
+        row.className = 'gantt-row';
+        row.innerHTML = `<div><div class="machine-label">${m.name}</div><div class="machine-sub ${m.bottleneck ? 'bottleneck' : ''}">${m.sub}</div></div>
+          <div class="track">${tracks[idx].map(b => `<div class="block ${b.cls}" style="width:${b.w}%">${b.t}</div>`).join('')}</div>`;
+        container.appendChild(row);
+      });
+    }
+
+    function renderOrders() {
+      const plan = state.approvedPlan;
+      const w0914 = !state.shockTriggered ? ['pill-ok', '罰則單優先，準時出貨']
+        : plan === 'split' ? ['pill-late', '已核准方案二：晚 1 天，罰約 3.6 萬']
+        : plan === 'merge' ? ['pill-ok', '不受影響，準時出貨'] : ['pill-warn', '視追加單決策而定'];
+      const orders = [
+        { id: 'W0914', cust: '乙／B2（1,500 片）', kit: '齊', pen: '2%／天', legacy: ['pill-late', '被甲插單擠掉，晚 1 天'], ai: w0914 },
+        { id: 'W0915', cust: '丙／C2（換零件）', kit: '新料 9/17 到', pen: '1%／天', legacy: ['pill-late', '舊料已貼，拆掉重做'], ai: ['pill-hold', '舊料凍結；新料到齊才排 SMT'] },
+        { id: 'W0916', cust: '甲／A1', kit: '齊', pen: '無', legacy: ['pill-ok', '先做'], ai: ['pill-ok', '同機種合併，少 1 次換線'] }
+      ];
+      if (state.shockTriggered) {
+        orders.unshift({ id: '甲追加', cust: '甲／A1 500 片（電話 13:10）', kit: '齊', pen: '無（但不能拒絕）',
+          legacy: ['pill-late', '2 小時 40 分後現場才知道，直接插單'],
+          ai: plan === 'merge' ? ['pill-ok', '已核准方案一：接在 1 線 A1 後，今晚完成']
+            : plan === 'split' ? ['pill-ok', '已核准方案二：插入 2 線，今天下午完成']
+            : ['pill-hold', '待生管選方案（業務已收到預估交期）'] });
+      }
+      document.getElementById('orderTableBody').innerHTML = orders.map(o => {
+        const res = state.mode === 'ai' ? o.ai : o.legacy;
+        const kitOk = o.kit === '齊';
+        return `<tr><td><strong>${o.id}</strong></td><td>${o.cust}</td>
+          <td>${kitOk ? '<span style="color:#86efac">● 料齊</span>' : `<span style="color:#fca5a5">▲ ${o.kit}</span>`}</td>
+          <td>${o.pen}</td><td><span class="pill ${res[0]}">${res[1]}</span></td></tr>`;
+      }).join('');
+    }
+
+    function renderAgentFeed(m) {
+      const feed = document.getElementById('agentFeed');
+      const items = [];
+      const plan = state.approvedPlan;
+      const [lo, hi] = m.ai;
+      if (state.shockTriggered) {
+        items.push(`
+          <div class="alert-box critical">
+            <div class="alert-meta"><span>🚨 甲追加單影響分析 <span class="tag ai">AI 讀訊息</span><span class="tag rule">規則算代價</span></span><span>13:12</span></div>
+            <div>業務電話記錄：「甲追加 <strong>A1 500 片</strong>，越快越好」→ 已轉成工單。甲的追加不能拒絕，只決定<strong>怎麼排</strong>：</div>
+            <div style="margin-top:6px;font-size:12px;color:var(--muted)">
+              ① 接在 1 線正在跑的 A1 後面：<strong>零換線</strong>，今晚完成；丙 C1 順延半天仍在交期內，<strong>罰款 0</strong><br/>
+              ② 立刻插入 2 線：今天下午完成，但要多換線 2 次（換過去再換回來，約 270 片產能），乙 W0914 晚 1 天，<strong>罰約 3.6 萬</strong>（1,500 片 × 1,200 × 2%）
+            </div>
+            <div class="alert-actions">
+              <button onclick="approvePlan('merge')" class="${plan === 'merge' ? 'active' : ''}">${plan === 'merge' ? '✓ 已核准方案一' : '方案一：接在 A1 後（推薦）'}</button>
+              <button onclick="approvePlan('split')" class="${plan === 'split' ? 'active' : ''}">${plan === 'split' ? '✓ 已核准方案二' : '方案二：立刻插入 2 線'}</button>
+            </div>
+          </div>`);
+      }
+      items.push(`
+        <div class="alert-box">
+          <div class="alert-meta"><span>⚠️ 換零件通知 <span class="tag ai">AI 讀 LINE</span><span class="tag rule">規則</span></span><span>10:31</span></div>
+          <div>丙在 LINE 通知 <strong>C2 換零件</strong>（10:30）→ 已同步推給倉庫與 3 線課長：<strong>舊料凍結、不再上線</strong>，新料到齊前 C2 不排 SMT。9/14 同樣情況等了 4.5 小時才傳到現場，120 片拆掉重做。</div>
+        </div>`);
+      items.push(`
+        <div class="alert-box success">
+          <div class="alert-meta"><span>✅ 本月 SMT 排程健康度 <span class="tag rule">規則</span></span><span>08:00</span></div>
+          <div>排程改用機台紀錄的<strong>實際換線時間（平均 0.9 hr／次）</strong>，不再用每線每天 0.5 hr；同機種合併後，本月換線停機預估少 <strong>${range(m.legacy.co - lo.co, m.legacy.co - hi.co, r0)} hr</strong>，開機時數不增加。</div>
+        </div>`);
+      feed.innerHTML = items.join('');
+    }
+
+    function approvePlan(plan) { state.approvedPlan = plan; state.mode = 'ai'; syncModeBtns(); updateAll(); }
+    function syncModeBtns() {
+      document.getElementById('btnLegacy').classList.toggle('active', state.mode === 'legacy');
+      document.getElementById('btnAi').classList.toggle('active', state.mode === 'ai');
+    }
+
+    function renderBusy(m) {
+      const L = m.legacy, [lo, hi] = m.ai;
+      const mid = k => (lo[k] + hi[k]) / 2;
+      const O = BASE.openHr;
+      const seg = (cls, hr, label) => `<div class="busy-seg ${cls}" style="width:${hr / O * 100}%" title="${label} ${r0(hr)} hr">${hr / O > 0.06 ? label + ' ' + r0(hr) + 'h' : r0(hr)}</div>`;
+      document.getElementById('busyLegacy').innerHTML =
+        seg('seg-plan', L.run, '正常運轉') + seg('seg-fire', L.co, '換線') + seg('seg-sync', L.wait, '等料') + seg('seg-routine', L.jam, '拋料');
+      document.getElementById('busyFlow').innerHTML =
+        seg('seg-plan', mid('run'), '正常運轉') + seg('seg-fire', mid('co'), '換線') + seg('seg-sync', mid('wait'), '等料') + seg('seg-routine', L.jam, '拋料');
+    }
+
+    function updateAll() {
+      const metrics = computeMetrics();
+      renderKpis(metrics);
+      renderAssumptions(metrics);
+      renderBusy(metrics);
+      renderGantt();
+      renderOrders();
+      renderAgentFeed(metrics);
+      document.getElementById('kpiNote').style.visibility = state.mode === 'ai' ? 'visible' : 'hidden';
+    }
+
+    document.getElementById('evSlider').addEventListener('input', (e) => {
+      state.events = Number(e.target.value);
+      document.getElementById('evVal').textContent = `${state.events} 次`;
+      updateAll();
+    });
+    document.getElementById('btnLegacy').addEventListener('click', () => { state.mode = 'legacy'; syncModeBtns(); updateAll(); });
+    document.getElementById('btnAi').addEventListener('click', () => { state.mode = 'ai'; syncModeBtns(); updateAll(); });
+    document.getElementById('btnShock').addEventListener('click', () => {
+      state.shockTriggered = !state.shockTriggered;
+      if (!state.shockTriggered) state.approvedPlan = null;
+      document.getElementById('btnShock').textContent = state.shockTriggered ? '↺ 重置' : '⚡ 重播 9/16 甲追加 500 片';
+      updateAll();
+    });
+
+    updateAll();
+
+    // ===================== Agent 工作台（全部在瀏覽器內執行，不連網） =====================
+    const WB = (() => {
+      const RATE = 150, CO = 0.9, DAY_END = 18, PRICE = 1200;
+      const PEN = { '甲': 0, '乙': 0.02, '丙': 0.01 };
+      const SAMPLES = [
+        { k: '9/16 電話', ch: '電話錄音', t: '（13:10 電話錄音轉文字）甲：A1 再追加 500 片，越快越好。' },
+        { k: '9/2 LINE', ch: 'LINE', t: '09:20【甲】A1 再加 400 片，麻煩先排。' },
+        { k: '9/24 口頭', ch: '口頭', t: '13:40 老闆交代：甲的 A2 600 片先做。' },
+        { k: '9/14 換零件', ch: 'LINE', t: '10:30 丙：C2 要換零件，新版 BOM 如附件，舊料不要再用。' }
+      ];
+      const baseSched = () => ([
+        { line: 'SMT 1 線', jobs: [{ id: 'W0916', cust: '甲', model: 'A1', qty: 1350, due: '明天' }] },
+        { line: 'SMT 2 線', jobs: [{ id: 'W0914', cust: '乙', model: 'B2', qty: 1500, due: '今天' }] },
+        { line: 'SMT 3 線', jobs: [{ id: 'W0915', cust: '丙', model: 'C2', qty: 900, due: '明天' }, { id: 'W0917', cust: '甲', model: 'A2', qty: 300, due: '明天' }] },
+        { line: 'SMT 4 線', jobs: [{ id: 'W0918', cust: '乙', model: 'B2', qty: 900, due: '明天' }, { id: 'W0919', cust: '丙', model: 'C1', qty: 300, due: '明天' }] }
+      ]);
+      let sched = baseSched(), pending = null;
+
+      // 把一條線的工單排成時間軸（08:00 起，換機種加 0.9 hr）
+      function layout(jobs) {
+        let t = 8, prev = null; const out = [];
+        jobs.forEach(j => {
+          if (j.at !== undefined && j.at > t) t = j.at;           // 插單：從指定時間切入
+          if (prev && prev !== j.model) { out.push({ setup: true, s: t, e: t + CO }); t += CO; }
+          const e = t + j.qty / RATE; out.push({ ...j, s: t, e }); t = e; prev = j.model;
+        });
+        return out;
+      }
+      const hhmm = h => { const m = Math.round(h * 60); return `${String(Math.floor(m / 60) % 24).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`; };
+      const finishText = e => e <= DAY_END ? `今天 ${hhmm(e)}` : `明早 ${hhmm(8 + (e - DAY_END))}`;
+
+      function parse(text, ch) {
+        const cust = (text.match(/[甲乙丙]/) || [])[0] || '?';
+        const model = ((text.match(/[ABC]\s?\d/i) || [''])[0]).toUpperCase().replace(/\s/g, '');
+        const qty = +(((text.match(/([\d,]+)\s*片/) || [])[1] || '0').replace(/,/g, ''));
+        const tm = text.match(/(\d{1,2}):(\d{2})/);
+        const time = tm ? +tm[1] + +tm[2] / 60 : 13 + 10 / 60;
+        const type = /換零件|換料|改版|BOM/.test(text) ? '換零件' : '追加';
+        const channel = /老闆|口頭/.test(text) ? '口頭' : ch;
+        return { cust, model, qty, time, type, channel };
+      }
+
+      // 規則：算兩個排法的代價
+      function evaluate(order) {
+        const opts = [];
+        const dur = order.qty / RATE;
+        // 方案 A：接在同機種後面（零換線）
+        let li = sched.findIndex(l => l.jobs.some(j => j.model === order.model));
+        let same = true;
+        if (li < 0) { li = sched.findIndex(l => l.jobs.some(j => j.model[0] === order.model[0])); same = false; }
+        if (li < 0) li = 0;
+        const A = baseClone(); const jobsA = A[li].jobs;
+        const pos = jobsA.map(j => j.model).lastIndexOf(same ? order.model : jobsA.find(j => j.model[0] === order.model[0])?.model);
+        jobsA.splice(pos + 1, 0, { id: '追加', cust: order.cust, model: order.model, qty: order.qty, due: '盡快', isNew: true });
+        opts.push(cost('A', same ? `接在 ${A[li].line} 的 ${order.model} 後面（同機種，零換線）` : `接在 ${A[li].line} 同系列之後`, A, li));
+        // 方案 B：現況做法，從現在直接插進第一條排得進去的別的線
+        const lb = sched.findIndex((l, i) => i !== li);
+        const B = baseClone(); const lay = layout(B[lb].jobs);
+        const cur = lay.findIndex(x => !x.setup && x.e > order.time);
+        const idx = cur < 0 ? B[lb].jobs.length : B[lb].jobs.findIndex(j => j.id === lay[cur].id);
+        if (cur >= 0) {                                         // 切開正在做的單
+          const run = lay[cur], doneQty = Math.max(0, Math.round((order.time - run.s) * RATE));
+          const orig = B[lb].jobs[idx];
+          B[lb].jobs.splice(idx, 1, { ...orig, qty: doneQty }, { id: '追加', cust: order.cust, model: order.model, qty: order.qty, due: '盡快', isNew: true, at: order.time }, { ...orig, qty: orig.qty - doneQty, rest: true });
+        } else B[lb].jobs.push({ id: '追加', cust: order.cust, model: order.model, qty: order.qty, due: '盡快', isNew: true });
+        opts.push(cost('B', `立刻插進 ${B[lb].line}（現況做法：先插再說）`, B, lb));
+        return opts;
+      }
+      const baseClone = () => JSON.parse(JSON.stringify(sched));
+      function cost(key, label, S, li) {
+        const before = layout(sched[li].jobs), after = layout(S[li].jobs);
+        const setups = after.filter(x => x.setup).length - before.filter(x => x.setup).length;
+        const late = []; let pen = 0;
+        const lastEnd = {}; after.forEach(x => { if (!x.setup && x.id !== '追加') lastEnd[x.id] = x.e; });
+        Object.entries(lastEnd).forEach(([id, e]) => {
+          const j = S[li].jobs.find(z => z.id === id);
+          const wasLate = before.some(b => b.id === id && b.e > DAY_END);
+          if (j.due === '今天' && e > DAY_END && !wasLate) {
+            const full = sched[li].jobs.find(z => z.id === id);
+            const p = full.qty * PRICE * PEN[j.cust]; pen += p;
+            late.push(`${j.cust} ${id}（${full.qty.toLocaleString()} 片）晚 1 天，罰 ${(p / 1e4).toFixed(1)} 萬`);
+          }
+        });
+        const fin = after.find(x => x.isNew);
+        return { key, label, S, li, setups, late, pen, fin: finishText(fin.e) };
+      }
+
+      // ---------- 畫面 ----------
+      function renderSched(S = sched) {
+        const W = DAY_END - 8; // 只畫正常班 08:00–18:00，超過的部分不畫出格子，改用右側標籤
+        document.getElementById('wbSched').innerHTML = S.map(l => {
+          let over = 0, overLate = false;
+          const blocks = layout(l.jobs).map(x => {
+            if (!x.setup && x.e > DAY_END) { over += Math.round((x.e - Math.max(x.s, DAY_END)) * RATE); if (x.due === '今天') overLate = true; }
+            if (x.s >= DAY_END) return '';
+            const left = (x.s - 8) / W * 100, w = (Math.min(x.e, DAY_END) - x.s) / W * 100;
+            if (x.setup) return `<div class="wb-blk setup" style="left:${left}%;width:${w}%" title="換線 0.9 hr"></div>`;
+            const cls = x.isNew ? 'new' : (x.due === '今天' && x.e > DAY_END ? 'late' : 'c' + x.cust);
+            const label = w > 9 ? `${x.isNew ? '追加 ' : ''}${x.cust}${x.model}` : '';
+            return `<div class="wb-blk ${cls}" style="left:${left}%;width:${w}%" title="${x.cust} ${x.id} ${x.model} ${x.qty} 片">${label}</div>`;
+          }).join('');
+          const tag = over ? `<span class="wb-over ${overLate ? 'bad' : ''}">${overLate ? '⚠ 交期單 ' : ''}+${over.toLocaleString()} 片延到明早</span>` : '<span class="wb-over ok">今天做完</span>';
+          return `<div class="wb-line"><span>${l.line}</span><div class="wb-track">${blocks}</div>${tag}</div>`;
+        }).join('') + `<div class="wb-line"><span></span><div class="wb-axis"><i>08</i><i>10</i><i>12</i><i>14</i><i>16</i><i>18</i></div><span></span></div>`;
+      }
+
+      function reset() {
+        sched = baseSched(); pending = null; renderSched();
+        document.getElementById('wbTrace').innerHTML = '<div class="kpi-note">按「交給 Agent」開始。</div>';
+      }
+
+      const step = (n, title, tags, body) => `<div class="wb-step"><div class="wb-step-h"><b>${n}</b> ${title} ${tags}</div><div class="wb-step-b">${body}</div></div>`;
+      const T = { llm: '<span class="tag ai">LLM</span>', speech: '<span class="tag ai">Speech</span>', tool: '<span class="tag ai">Agent 呼叫工具</span>', rule: '<span class="tag rule">規則</span>', human: '<span class="tag" style="background:rgba(34,197,94,.14);color:#86efac;border:1px solid rgba(34,197,94,.4)">人</span>', flow: '<span class="tag ai">Flow</span>' };
+
+      async function run() {
+        const trace = document.getElementById('wbTrace');
+        reset();
+        const text = document.getElementById('wbInput').value.trim();
+        const ch = document.getElementById('wbChannel').value;
+        if (!text) return;
+        const o = parse(text, ch);
+        const steps = [];
+        const push = async html => { steps.push(html); trace.innerHTML = steps.join(''); await new Promise(r => setTimeout(r, window.WB_FAST ? 0 : 450)); };
+        trace.innerHTML = '';
+
+        await push(step('1', '讀訊息，轉成工單', (o.channel === '電話錄音' ? T.speech : '') + T.llm,
+          `<table class="wb-kv"><tr><td>客戶</td><td>${o.cust}</td><td>類型</td><td>${o.type}</td></tr>
+           <tr><td>機種</td><td>${o.model || '?'}</td><td>數量</td><td>${o.qty ? o.qty.toLocaleString() + ' 片' : '—'}</td></tr>
+           <tr><td>管道</td><td>${o.channel}</td><td>收到</td><td>${hhmm(o.time)}</td></tr></table>` +
+          (o.channel === '口頭' ? `<div class="wb-warn">⚠️ 口頭交代沒有紀錄：已建<strong>草稿單</strong>，業務在 LINE 按確認後才生效（9/8、9/24 兩筆口頭單都沒留紀錄）。</div>` : '')));
+
+        await push(step('2', '查資料', T.tool,
+          `讀取：今日 SMT 排程（4 線）｜客戶罰則（甲 0、乙 2%、丙 1%／天）｜換線時間表（機台紀錄平均 0.9 hr／次）｜${o.type === '換零件' ? '在線物料與新料到貨' : '同機種在哪條線'}`));
+
+        if (o.type === '換零件') {
+          const li = sched.findIndex(l => l.jobs.some(j => j.model === o.model));
+          const lay = li >= 0 ? layout(sched[li].jobs) : [];
+          const run = lay.find(x => !x.setup && x.model === o.model);
+          const done = run ? Math.max(0, Math.round((o.time - run.s) * RATE)) : 0;
+          const next = li >= 0 ? sched[li].jobs.find(j => j.model !== o.model) : null;
+          await push(step('3', '判斷影響', T.rule,
+            li < 0 ? '目前沒有線在做這個機種，只需凍結庫存舊料。' :
+            `${sched[li].line} 正在做 ${run.cust} ${run.id}（${o.model}），從 ${hhmm(run.s)} 到現在已貼約 <strong>${done} 片舊料</strong>。每晚通知 1 小時，就多貼 ${RATE} 片要拆掉重做。`));
+          await push(step('4', '寫建議', T.llm,
+            `建議<strong>立刻停止 ${o.model} 舊料上線</strong>，${next ? `${sched[li].line} 改做已齊套的 ${next.cust} ${next.id}（${next.model}），SMT 不空等；` : ''}已貼的 ${done} 片交品保判定；倉庫退舊料、向供應商催新料，新料到齊前 ${o.model} 不排 SMT。<br/><span class="kpi-note">對照：9/14 同樣的 LINE 訊息 4.5 小時後才傳到現場，120 片拆掉重做。</span>`));
+          pending = { kind: 'change', li, model: o.model, next, done };
+          await push(step('5', '等人核准', T.human, `<div class="alert-actions"><button class="active" onclick="WB.approve()">核准：凍結舊料並改排</button></div>`));
+          return;
+        }
+
+        const opts = evaluate(o);
+        await push(step('3', '算兩個排法的代價', T.rule,
+          `<table class="wb-opt"><tr><th></th><th>排法</th><th>追加完成</th><th>多換線</th><th>被擠掉</th><th>罰款</th></tr>` +
+          opts.map(p => `<tr><td><b>${p.key}</b></td><td>${p.label}</td><td>${p.fin}</td><td>${p.setups} 次</td><td>${p.late.join('<br/>') || '無'}</td><td class="${p.pen ? 'r' : 'g'}">${(p.pen / 1e4).toFixed(1)} 萬</td></tr>`).join('') + '</table>'));
+        const best = [...opts].sort((a, b) => a.pen - b.pen || a.setups - b.setups)[0];
+        const other = opts.find(p => p !== best);
+        await push(step('4', '寫建議給生管', T.llm,
+          `建議<strong>方案 ${best.key}</strong>：${best.label}。${o.cust} 的追加 ${o.qty.toLocaleString()} 片 ${best.fin} 完成，${best.late.length ? best.late.join('、') : '不會擠掉任何有罰則的單'}，${best.setups ? `多換線 ${best.setups} 次` : '不用多換線'}。` +
+          `方案 ${other.key} 雖然 ${other.fin} 完成，${other.late.length ? '但' + other.late.join('、') + '，' : '但'}要多換線 ${other.setups} 次（約 ${Math.round(other.setups * CO * RATE)} 片產能）。<br/>給業務回覆${o.cust}的話：「追加 ${o.qty} 片確定 ${best.fin} 完成，隔天出貨。」`));
+        pending = { kind: 'add', opts, o };
+        await push(step('5', '等人核准', T.human,
+          `<div class="alert-actions">${opts.map(p => `<button class="${p === best ? 'active' : ''}" onclick="WB.approve('${p.key}')">核准方案 ${p.key}${p === best ? '（建議）' : ''}</button>`).join('')}</div>`));
+      }
+
+      function approve(key) {
+        if (!pending) return;
+        const trace = document.getElementById('wbTrace');
+        let body = '';
+        if (pending.kind === 'add') {
+          const p = pending.opts.find(x => x.key === key); sched = p.S; renderSched();
+          body = `✓ 生管已核准方案 ${key}<br/>→ 業務：回覆${pending.o.cust}「${p.fin} 完成」<br/>→ ${sched[p.li].line} 課長：排程已更新${p.setups ? `，${hhmm(8)} 前備好 ${pending.o.model} 的料與飛達` : ''}<br/>→ 倉庫：${pending.o.model} 追加 ${pending.o.qty} 片備料<br/>→ 決策紀錄表：誰、何時、選了哪個方案、代價多少（週會對帳用）`;
+        } else {
+          const { li, model, next, done } = pending;
+          if (li >= 0) { sched[li].jobs = sched[li].jobs.map(j => j.model === model ? { ...j, qty: done, id: j.id + '（停）' } : j); renderSched(); }
+          body = `✓ 生管已核准<br/>→ 倉庫：${model} 舊料凍結、退庫；催新料<br/>→ ${li >= 0 ? sched[li].line : ''} 課長：停止 ${model} 舊料${next ? `，改做 ${next.id}` : ''}<br/>→ 品保：已貼的舊料板子判定<br/>→ 決策紀錄表已寫入`;
+        }
+        trace.querySelectorAll('.alert-actions button').forEach(b => { b.disabled = true; b.style.opacity = .5; });
+        trace.innerHTML += step('6', '執行與通知', T.flow, body);
+        pending = null;
+      }
+
+      function init() {
+        document.getElementById('wbSamples').innerHTML = SAMPLES.map((s, i) => `<button onclick="WB.pick(${i})">${s.k}</button>`).join('');
+        document.getElementById('wbRun').addEventListener('click', run);
+        pick(0); renderSched();
+      }
+      function pick(i) { reset(); const ta = document.getElementById('wbInput'); ta.value = SAMPLES[i].t; ta.textContent = SAMPLES[i].t; const sel = document.getElementById('wbChannel'); [...sel.options].forEach(o => { o.selected = o.text === SAMPLES[i].ch; o.toggleAttribute('selected', o.selected); }); }
+      return { init, approve, pick, run, reset };
+    })();
+    WB.init();
+  </script>
+</body>
+</html>
